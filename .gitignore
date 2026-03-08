@@ -40,4 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.firebase.ts
+# Firebase secrets
+**/firebase.ts

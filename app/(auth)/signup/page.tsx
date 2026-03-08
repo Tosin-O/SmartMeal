@@ -1,105 +1,41 @@
-// app/(auth)/signup/page.tsx
-'use client';
-
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // for redirecting after success
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth, db } from "@/lib/firebase"; // Import from your utility file
-import { doc, setDoc } from "firebase/firestore"; // For creating a user record
+import Image from 'next/image';
+import SignupForm from './SignupForm';
 
 export default function SignupPage() {
-  const router = useRouter();
-  
-  // 1. Add State for the form fields
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null); // State for error display
-
-  // 2. The form submission handler
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null); // Clear errors
-
-    try {
-      console.log("Starting signup...");
-      // A. Call Firebase to create the user in the Auth database
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      
-      console.log("Auth user created:", user.uid);
-
-      // B. (Optional but crucial for your project) 
-      // Update the user's display name
-      await updateProfile(user, { displayName: name });
-
-      // C. CREATE A RECORD IN THE FIRESTORE DATABASE
-      // We are writing a new document in the 'users' collection
-      // where the document ID matches the unique ID (uid) from Auth.
-      console.log("Creating Firestore record for user...");
-      await setDoc(doc(db, "users", user.uid), {
-        fullName: name,
-        email: email,
-        dietaryPreferences: [], // An initial placeholder array
-        currentPlan: "starter",
-        createdAt: new Date(),
-      });
-      
-      console.log("Firestore record created.");
-      
-      // D. Successfully registered! Redirect to the dashboard
-      router.push('/login'); // Redirect to login page after successful signup
-
-    } catch (err: any) {
-      console.error("Signup error:", err);
-      // Firebase errors are specific, but we will make it simple for the user.
-      if (err.code === 'auth/email-already-in-use') {
-        setError('An account with this email already exists.');
-      } else {
-        setError('Failed to create account. Please try again.');
-      }
-    }
-  };
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-900 p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-2xl bg-gray-800 p-8 shadow-xl">
-        <h1 className="mb-6 text-3xl font-bold text-white text-center">Start Your Smart Meal Journey</h1>
+    <div className="flex min-h-screen bg-white dark:bg-[#111111]">
+      {/* Left Side Panel - Illustration */}
+      <div className="relative hidden w-1/2 bg-[#EAD8C0] dark:bg-[#2A241D] lg:flex flex-col justify-end">
+        {/* Replace with your illustration path */}
+        <Image src="/signup-image.svg" alt="Happy woman with groceries" fill className="object-cover object-bottom" priority />
         
-        {/* Error Display */}
-        {error && (
-          <div className="mb-4 text-center rounded bg-red-900/50 p-3 text-sm text-red-200">
-            {error}
+        <div className="relative z-20 p-12 w-full bg-linear-to-t from-black/80 to-transparent">
+          <div className="flex items-center gap-2 mb-4 text-[#1CD05D]">
+            {/* Logo */}
+            <Image
+                src="/logo.svg"
+                alt="Logo"
+                width={64}
+                height={64}
+         />
+            <span className="text-xl font-bold text-white">SmartMeal</span>
           </div>
-        )}
-
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300">Full Name</label>
-            <input type="text" id="name" required value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-700 p-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500" />
-          </div>
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email Address</label>
-            <input type="email" id="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-700 p-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500" />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
-            <input type="password" id="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-700 p-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500" />
+          <h2 className="text-4xl font-bold text-white">Start your healthy<br/>journey today.</h2>
+          <p className="mt-4 text-gray-200">Join 10,000+ users planning smarter meals and saving time on grocery trips.</p>
+          
+          <div className="flex items-center gap-3 mt-8">
+            <div className="flex -space-x-2">
+              <div className="w-8 h-8 rounded-full border-2 border-black bg-gray-300"></div>
+              <div className="w-8 h-8 rounded-full border-2 border-black bg-gray-400"></div>
+              <div className="w-8 h-8 rounded-full border-2 border-black bg-gray-500"></div>
+            </div>
+            <span className="text-sm font-medium text-white">Free 14-day trial included</span>
           </div>
         </div>
+      </div>
 
-        <button type="submit" className="mt-8 w-full rounded-lg bg-purple-600 p-3 font-semibold text-white transition hover:bg-purple-700">
-          Create Account
-        </button>
-
-        <p className="mt-6 text-center text-gray-400">
-          Already have an account?{' '}
-          <Link href="/login" className="font-semibold text-purple-400 hover:text-purple-300">
-            Log in
-          </Link>
-        </p>
-      </form>
+      {/* Right Side - Form */}
+      <SignupForm />
     </div>
   );
 }
