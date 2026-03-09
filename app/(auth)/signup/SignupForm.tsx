@@ -7,6 +7,8 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import SocialButton from '../SocialButton';
 import PasswordInput from '../PasswordInputs';
+import TermsModal from '../../components/TermsModal';
+import PrivacyModal from '../../components/PrivacyModal';
 
 export default function SignupForm() {
   const router = useRouter();
@@ -18,6 +20,8 @@ export default function SignupForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,7 +135,7 @@ export default function SignupForm() {
         <div className="flex items-start gap-3 mt-4">
           <input type="checkbox" id="terms" required className="w-4 h-4 mt-1 rounded border-gray-300 text-[#1CD05D] focus:ring-[#1CD05D] dark:border-gray-600 dark:bg-[#1A1A1A] dark:checked:bg-[#1CD05D]" />
           <label htmlFor="terms" className="text-sm text-gray-600 dark:text-gray-400">
-            I agree to the <Link href="/terms" className="font-semibold text-[#1CD05D] hover:underline">Terms of Service</Link> and <Link href="/privacy" className="font-semibold text-[#1CD05D] hover:underline">Privacy Policy</Link>.
+            I agree to the <button type="button" onClick={() => setIsTermsOpen(true)} className="font-semibold text-[#1CD05D] hover:underline">Terms of Service</button> and <button type="button" onClick={() => setIsPrivacyOpen(true)} className="font-semibold text-[#1CD05D] hover:underline">Privacy Policy</button>.
           </label>
         </div>
 
@@ -147,6 +151,9 @@ export default function SignupForm() {
       <p className="mt-8 text-sm text-center text-gray-600 dark:text-gray-400">
         Already have an account? <Link href="/login" className="font-semibold text-[#1CD05D] hover:underline">Log in</Link>
       </p>
+
+      <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
+      <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
     </div>
   );
 }
