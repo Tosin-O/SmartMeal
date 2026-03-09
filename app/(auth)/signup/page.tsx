@@ -8,7 +8,7 @@ export default function SignupPage() {
       {/* (Keep your existing background color classes) */}
       <div className="relative hidden w-1/2 bg-[#EAD8C0] dark:bg-[#2A241D] lg:flex flex-col justify-end">
         <Image 
-          src="/signup-illustration.png" 
+          src="/signup-image.svg" 
           alt="Happy woman with groceries" 
           fill 
           className="object-cover object-top" /* <--- CHANGE THIS LINE to object-top */
@@ -20,8 +20,8 @@ export default function SignupPage() {
             <Image
                 src="/logo.svg"
                 alt="Logo"
-                width={56}
-                height={56}
+                width={36}
+                height={36}
          />
             <span className="text-xl font-bold text-white">SmartMeal</span>
           </div>

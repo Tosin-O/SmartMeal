@@ -9,8 +9,8 @@ export default function Navbar() {
         <Image
                 src="/logo.svg"
                 alt="Logo"
-                width={56}
-                height={56}
+                width={36}
+                height={36}
          />
         <span className="text-xl font-bold text-gray-900 dark:text-white lg:text-2xl">SmartMeal</span>
       </Link>

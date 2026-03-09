@@ -54,13 +54,13 @@ export default function Home() {
             </div>
             
             {/* Floating Card exactly like your mockup */}
-            <div className="absolute -bottom-6 lg:-bottom-10 lg:-left-10 left-4 right-4 lg:right-auto bg-white/90 dark:bg-[#1A1A1A]/90 backdrop-blur-md p-4 rounded-xl shadow-xl border border-gray-200 dark:border-[#2A2A2A] flex items-center justify-between min-w-[300px]">
+            <div className="absolute -bottom-6 lg:-bottom-10 lg:-left-10 left-4 right-4 lg:right-auto bg-white/90 dark:bg-[#1A1A1A]/90 backdrop-blur-md p-4 rounded-xl shadow-xl border border-gray-200 dark:border-[#2A2A2A] flex items-center justify-between min-w-75">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-[#1CD05D]">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tuesday's Plan</p>
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tuesday&apos;s Plan</p>
                   <p className="text-sm font-bold text-gray-900 dark:text-white">Grilled Salmon & Quinoa</p>
                 </div>
               </div>
@@ -141,7 +141,7 @@ export default function Home() {
             
             <ul className="space-y-8 mb-10">
               <li className="flex gap-4">
-                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-[#1CD05D]">
+                <div className="mt-1 shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-[#1CD05D]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                 </div>
                 <div>
@@ -150,7 +150,7 @@ export default function Home() {
                 </div>
               </li>
               <li className="flex gap-4">
-                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-[#1CD05D]">
+                <div className="mt-1 shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-[#1CD05D]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                 </div>
                 <div>
@@ -159,7 +159,7 @@ export default function Home() {
                 </div>
               </li>
               <li className="flex gap-4">
-                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-[#1CD05D]">
+                <div className="mt-1 shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-[#1CD05D]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                 </div>
                 <div>
@@ -252,7 +252,7 @@ export default function Home() {
         <section className="py-20">
           <div className="relative overflow-hidden rounded-3xl bg-gray-900 dark:bg-[#0A1A12] border border-gray-800 dark:border-green-900/30 text-center px-6 py-16 lg:py-24">
             {/* Decorative background gradient specific to dark mode design */}
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 dark:from-[#0F2A1C] dark:to-[#0A0A0A] opacity-50 z-0"></div>
+            <div className="absolute inset-0 bg-linear-to-br from-gray-800 to-gray-900 dark:from-[#0F2A1C] dark:to-[#0A0A0A] opacity-50 z-0"></div>
             
             <div className="relative z-10 max-w-2xl mx-auto">
               <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-6">Ready to simplify your meal planning?</h2>

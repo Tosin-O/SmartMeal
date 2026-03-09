@@ -43,8 +43,8 @@ export default function LoginForm() {
           <Image
                 src="/logo.svg"
                 alt="Logo"
-                width={56}
-                height={56}
+                width={36}
+                height={36}
          />
           <span className="text-2xl font-bold text-gray-900 dark:text-white">SmartMeal</span>
         </div>
