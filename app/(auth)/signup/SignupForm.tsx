@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { doc, setDoc, collection, addDoc } from 'firebase/firestore'; 
+import { auth, db } from '@/lib/firebase';
 import SocialButton from '../SocialButton';
 import PasswordInput from '../PasswordInputs';
 import TermsModal from '../../components/TermsModal';
@@ -29,7 +30,6 @@ export default function SignupForm() {
     e.preventDefault();
     setError('');
 
-    // 1. Validate passwords match
     if (password !== confirmPassword) {
       return setError('Passwords do not match.');
     }
@@ -37,25 +37,44 @@ export default function SignupForm() {
     setIsLoading(true);
 
     try {
-      // 2. Create the user in Firebase Auth
+      // 1. Create the user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
       
-      if (userCredential.user) {
-        // 3. Update the profile with the user's name
-        await updateProfile(userCredential.user, {
+      if (user) {
+        // 2. Update the profile with the user's name
+        await updateProfile(user, {
           displayName: fullName
         });
 
-        // 4. Send the verification email using your Firebase template
-        await sendEmailVerification(userCredential.user);
+        // 3. Send the verification email
+        await sendEmailVerification(user);
+
+        // 4. Create the main User document (Now includes the admin boolean)
+        await setDoc(doc(db, "users", user.uid), {
+          fullName: fullName,
+          email: email,
+          createdAt: new Date(),
+          budgetGoal: 25000,
+          currentSpent: 0,
+          admin: false // <-- NEW FIELD: Defaults to false for all public signups
+        });
+
+        // 5. Initialize the "pantry" sub-collection
+        await addDoc(collection(db, "users", user.uid, "pantry"), {
+          ingredientId: "demo_rice_001",
+          name: "Long-grain Rice",
+          quantity: 2.5,
+          unit: "kg",
+          lastUpdated: new Date()
+        });
       }
 
-      // 5. Show success UI instead of redirecting immediately
+      // 6. Show success UI
       setIsSuccess(true);
       
     } catch (err: unknown) {
       console.error(err);
-      // Safely tell TypeScript this is likely a Firebase error object
       const firebaseError = err as { code?: string; message?: string };
 
       if (firebaseError.code === 'auth/email-already-in-use') {
@@ -76,13 +95,13 @@ export default function SignupForm() {
       {/* SUCCESS STATE UI */}
       {isSuccess ? (
         <div className="text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="w-20 h-20 mx-auto mb-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-[#1CD05D]">
+          <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 text-[#1CD05D] bg-green-100 rounded-full dark:bg-green-900/30">
             <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Check your email</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+          <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white">Check your email</h2>
+          <p className="mb-8 leading-relaxed text-gray-600 dark:text-gray-400">
             We&apos;ve sent a verification link to <span className="font-semibold text-gray-900 dark:text-white">{email}</span>. Please click the link to activate your account before logging in.
           </p>
           <Link href="/login" className="inline-flex items-center justify-center w-full py-3.5 text-white font-bold rounded-lg bg-[#1CD05D] hover:bg-[#15b04d] transition-colors">
@@ -178,7 +197,7 @@ export default function SignupForm() {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="w-full py-3.5 mt-6 text-white font-bold rounded-lg bg-[#1CD05D] hover:bg-[#15b04d] transition-colors disabled:opacity-70 flex justify-center items-center"
+              className="flex items-center justify-center w-full py-3.5 mt-6 font-bold text-white transition-colors rounded-lg bg-[#1CD05D] hover:bg-[#15b04d] disabled:opacity-70"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">

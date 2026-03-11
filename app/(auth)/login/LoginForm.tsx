@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth'; // <-- Added signOut
-import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore'; // <-- Added Firestore imports
+import { auth, db } from '@/lib/firebase'; // <-- Make sure to import db
 import SocialButton from '../SocialButton';
 import PasswordInput from '../PasswordInputs';
 
@@ -21,22 +22,37 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      // 1. Attempt to log the user in
+      // 1. Attempt to log the user in via Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
       // 2. ENFORCEMENT CHECK: Is the email verified?
       if (!userCredential.user.emailVerified) {
-        // If not verified, sign them right back out so they don't access protected routes
+        // If not verified, sign them right back out
         await signOut(auth);
         
-        // Display a specific error message instructing them to check their email
+        // Display a specific error message
         setError('Your email has not been verified yet. Please check your inbox (and spam folder) for the verification link.');
         setIsLoading(false);
         return; // Stop the function here so they don't get redirected
       }
 
-      // 3. If verified, redirect to the dashboard
-      router.push('/dashboard'); 
+      // 3. ADMIN CHECK: Fetch the user's document from Firestore
+      const userDocRef = doc(db, "users", userCredential.user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        
+        // Route based on the admin boolean flag
+        if (userData.admin === true) {
+          router.push('/admin/dashboard'); 
+        } else {
+          router.push('/dashboard'); 
+        }
+      } else {
+        // Fallback in case the user doc somehow didn't generate during signup
+        router.push('/dashboard');
+      }
 
     } catch (err: unknown) {
       console.error(err);
@@ -50,14 +66,11 @@ export default function LoginForm() {
       } else {
         setError('An error occurred during login. Please try again.');
       }
-    } finally {
-      // Ensure loading state is turned off unless we are successfully redirecting
-      if (!error) {
-          // If there's no error, we are redirecting, keep the loading spinner active for a smooth transition
-      } else {
-          setIsLoading(false);
-      }
-    }
+      
+      // We only stop loading if there is an error. 
+      // If successful, we let the spinner keep spinning during the page redirect.
+      setIsLoading(false);
+    } 
   };
 
   return (
