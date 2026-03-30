@@ -15,7 +15,7 @@ The goal of SmartMeal is to reduce the stress of deciding what to eat while enco
   Discover meals you can prepare using ingredients you already have.
 
 - **Meal Planning**  
-  Organize meals for better daily or weekly structure.
+  Organize meals for better daily, weekly or monthly structure.
 
 - **Nutrition Awareness**  
   Make more informed food choices with basic nutritional insights.
