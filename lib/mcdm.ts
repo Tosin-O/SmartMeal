@@ -52,9 +52,9 @@ export function runTOPSIS(meals: MealOption[], weights: number[]): (MealOption &
   // Step 3: Apply Weights
   const weighted = normalized.map(row => row.map((val, j) => val * weights[j]));
 
-  // Step 4: Find Ideals
-  const ideal = [];
-  const antiIdeal = [];
+// Step 4: Find Ideals
+  const ideal: number[] = [];
+  const antiIdeal: number[] = [];
   for (let j = 0; j < m; j++) {
     const col = weighted.map(row => row[j]);
     if (isBenefit[j]) {

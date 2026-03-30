@@ -1,40 +1,36 @@
 // app/api/recommend-meals/route.ts
 import { NextResponse } from 'next/server';
 import { getAHPWeights, runTOPSIS, MealOption } from '@/lib/mcdm';
-// import { db } from '@/lib/firebase'; // Adjust to your actual firebase config path
-// import { collection, getDocs } from 'firebase/firestore'; 
+
+// Set your standard "Time-to-Table" for buying food on campus
+const AVERAGE_CAFETERIA_WAIT_TIME = 15; 
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const userBudgetGoal = body.budgetGoal || 5000; // Default fallback
+    const userBudgetGoal = body.budgetGoal || 5000;
 
-    // --- FIREBASE FETCH START ---
-    // In production, uncomment and use your Firebase instance:
-    /*
-    const cafeteriaRef = collection(db, 'cafeteria_meals');
-    const snapshot = await getDocs(cafeteriaRef);
-    let allMeals: MealOption[] = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        name: data.name,
-        cost: data.price,
-        nutrition: data.nutritionScore, // Ensure these exist in DB
-        time: data.prepTime,            // Ensure these exist in DB
-        source: 'Cafeteria'
-      };
-    });
-    */
-    // --- FIREBASE FETCH END ---
-
-    // DUMMY DATA FOR TESTING:
-    let allMeals: MealOption[] = [
-      { id: '1', name: 'SST Cafe Jollof & Turkey', cost: 4500, nutrition: 7, time: 5, source: 'Cafeteria' },
-      { id: '2', name: 'Bukka Indomie & Egg', cost: 1200, nutrition: 4, time: 10, source: 'Cafeteria' },
-      { id: '3', name: 'Crabberry Salad', cost: 3000, nutrition: 9, time: 5, source: 'Cafeteria' },
-      { id: '4', name: 'Premium Steak (Out of Budget)', cost: 15000, nutrition: 8, time: 20, source: 'Cafeteria' }
+    // --- MOCK DATA FOR TESTING ---
+    
+    // 1. Mock Cafeteria Meals (Time is forced to the constant)
+    const mockCafeteriaMeals: MealOption[] = [
+      { id: 'c1', name: 'SST Cafe Jollof & Turkey', cost: 4500, nutrition: 7, time: AVERAGE_CAFETERIA_WAIT_TIME, source: 'Cafeteria' },
+      { id: 'c2', name: 'Bukka Indomie & Egg', cost: 1200, nutrition: 4, time: AVERAGE_CAFETERIA_WAIT_TIME, source: 'Cafeteria' },
+      { id: 'c3', name: 'Crabberry Salad', cost: 3000, nutrition: 9, time: AVERAGE_CAFETERIA_WAIT_TIME, source: 'Cafeteria' },
+      { id: 'c4', name: 'SST Premium Steak', cost: 15000, nutrition: 8, time: AVERAGE_CAFETERIA_WAIT_TIME, source: 'Cafeteria' } // Should get filtered out by budget
     ];
+
+    // 2. Mock Recipes (Time is based on actual cooking prep time)
+    const mockRecipeMeals: MealOption[] = [
+      { id: 'r1', name: 'Homemade Beans & Plantain', cost: 2000, nutrition: 8, time: 90, source: 'Recipe' },
+      { id: 'r2', name: 'Quick Peanut Butter Sandwich', cost: 800, nutrition: 5, time: 5, source: 'Recipe' },
+      { id: 'r3', name: 'Homemade Chicken Stir Fry', cost: 3500, nutrition: 9, time: 45, source: 'Recipe' }
+    ];
+
+    // Combine both arrays into one master list for the algorithm
+    const allMeals = [...mockCafeteriaMeals, ...mockRecipeMeals];
+
+    // --- ALGORITHM PIPELINE ---
 
     // 1. Hard Constraint Filter: Remove anything strictly above budget
     const affordableMeals = allMeals.filter(meal => meal.cost <= userBudgetGoal);
@@ -45,7 +41,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      appliedWeights: { cost: weights[0], nutrition: weights[1], time: weights[2] },
+      appliedWeights: { 
+        cost: Number(weights[0].toFixed(3)), 
+        nutrition: Number(weights[1].toFixed(3)), 
+        time: Number(weights[2].toFixed(3)) 
+      },
       results: rankedMeals
     });
 
