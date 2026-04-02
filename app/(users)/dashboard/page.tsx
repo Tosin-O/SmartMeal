@@ -1,238 +1,269 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { doc, getDoc, collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
 
-export default function DashboardPage() {
-  return (
-    <div className="space-y-10">
-      
-      
-      {/* 1. Page Header - SIMPLIFIED, Shared elements moved to shared header */}
-      <header className="pb-6 border-b border-gray-200 dark:border-[#2A2A2A]">
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">Financial Overview</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Targeting <span className="font-bold text-[#1CD05D]">25% savings</span> based on your current pantry stock.
-          {/* Note: Market Data text moved to shared header */}
-        </p>
-      </header>
+interface UserData {
+  displayName: string;
+  budgetAmount: number;
+  primaryGoal: string;
+}
 
-      {/* 2. Live Market Insights */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xs font-bold tracking-wider text-gray-400 uppercase">Live Market Insights</h2>
-          <div className="flex gap-2">
-            <button className="p-1 text-gray-400 border border-gray-200 rounded dark:border-[#2A2A2A] hover:bg-gray-50 dark:hover:bg-[#1A1A1A]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
-            <button className="p-1 text-gray-400 border border-gray-200 rounded dark:border-[#2A2A2A] hover:bg-gray-50 dark:hover:bg-[#1A1A1A]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl dark:bg-[#111111] dark:border-[#2A2A2A] shadow-sm">
-            <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden relative shrink-0">
-               <Image src="/yam.jpg" alt="Yams" fill className="object-cover" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-[#1CD05D] uppercase tracking-wider mb-0.5">Best Value</p>
-              <h4 className="text-sm font-bold text-gray-900 dark:text-white">Yam Prices Dropped 10%</h4>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Availability high in Mainland markets</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl dark:bg-[#111111] dark:border-[#2A2A2A] shadow-sm">
-            <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden relative shrink-0">
-               <Image src="/tomato.jpg" alt="Tomatoes" fill className="object-cover" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-0.5">Volatility Alert</p>
-              <h4 className="text-sm font-bold text-gray-900 dark:text-white">Tomato Shortage Expected</h4>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Stock up on canned paste now</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl dark:bg-[#111111] dark:border-[#2A2A2A] shadow-sm">
-            <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden relative shrink-0">
-               <Image src="/rice.jpg" alt="Rice bag" fill className="object-cover" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-blue-500 uppercase tracking-wider mb-0.5">Bulk Opportunity</p>
-              <h4 className="text-sm font-bold text-gray-900 dark:text-white">Rice Stability Holding</h4>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Buy bulk 25kg+ for max savings</p>
-            </div>
-          </div>
-        </div>
-      </section>
+interface Recipe {
+  id: string;
+  title: string;
+  prepTime: string;
+  estimatedCost: number;
+  image: string;
+}
 
-      {/* 3. Main Grid (Recommendations + Pantry) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+interface MealPlanItem {
+  id: string;
+  mealType: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+  title: string;
+  source: 'Recipe' | 'Cafeteria';
+  cost: number;
+  isEaten: boolean;
+}
+
+export default function UserDashboard() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Dynamic State
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
+  const [todaysMeals, setTodaysMeals] = useState<MealPlanItem[]>([]);
+  
+  // Calculated Stats
+  const [pantryItemCount, setPantryItemCount] = useState(0);
+  const [plannedMealsCount, setPlannedMealsCount] = useState(0);
+  const [spentAmount, setSpentAmount] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      try {
+        // 1. Fetch User Profile
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists() || !userDocSnap.data().onboardingCompleted) {
+          router.push('/setup');
+          return;
+        }
+
+        const uData = userDocSnap.data();
+        setUserData({
+          displayName: uData.displayName || 'User',
+          budgetAmount: Number(uData.budgetAmount) || 0,
+          primaryGoal: uData.primaryGoal || 'Manage Diet',
+        });
+
+        // 2. Fetch User's Pantry Count
+        const pantryQuery = query(collection(db, 'pantry'), where('userId', '==', user.uid));
+        const pantrySnap = await getDocs(pantryQuery);
+        setPantryItemCount(pantrySnap.size);
+
+        // 3. Fetch User's Active Meal Plans
+        const mealPlansQuery = query(collection(db, 'meal_plans'), where('userId', '==', user.uid));
+        const mealPlansSnap = await getDocs(mealPlansQuery);
         
-        {/* Left Col: Recommendations */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Optimized Recommendations</h2>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500 dark:text-gray-400">Sort by:</span>
-              <button className="flex items-center gap-2 px-3 py-1.5 font-semibold text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-[#1A1A1A] dark:border-[#2A2A2A] dark:text-white">
-                Highest Savings
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </button>
+        setPlannedMealsCount(mealPlansSnap.size);
+        
+        let totalSpent = 0;
+        const fetchedTodaysMeals: MealPlanItem[] = [];
+        
+        mealPlansSnap.forEach((docSnap) => {
+          const mealData = docSnap.data();
+          totalSpent += Number(mealData.cost || 0);
+          
+          if (mealData.isToday) {
+            fetchedTodaysMeals.push({ id: docSnap.id, ...mealData } as MealPlanItem);
+          }
+        });
+        
+        setSpentAmount(totalSpent);
+        
+        const order = { Breakfast: 1, Lunch: 2, Dinner: 3, Snack: 4 };
+        fetchedTodaysMeals.sort((a, b) => order[a.mealType] - order[b.mealType]);
+        setTodaysMeals(fetchedTodaysMeals);
+
+        // 4. Fetch Real Recipe Recommendations
+        const recipesQuery = query(collection(db, 'recipes'), limit(3));
+        const recipesSnap = await getDocs(recipesQuery);
+        const fetchedRecipes: Recipe[] = [];
+        
+        recipesSnap.forEach(docSnap => {
+          fetchedRecipes.push({ id: docSnap.id, ...docSnap.data() } as Recipe);
+        });
+        setRecommendedRecipes(fetchedRecipes);
+
+      } catch (error) {
+        console.error("Error loading dashboard data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#1CD05D] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Safe budget calculation
+  const safeBudget = userData?.budgetAmount || 1; 
+  const budgetPercentage = Math.min((spentAmount / safeBudget) * 100, 100);
+
+  return (
+    <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#1CD05D] selection:text-white pb-20 lg:pb-8">
+      {/* Removed mx-auto and increased max-w to align it left, right next to the sidebar */}
+      <main className="p-6 md:p-8 max-w-400 w-full animate-in fade-in duration-500">
+        
+        {/* Welcome Section */}
+        <section className="mb-10">
+          <p className="text-[#1CD05D] text-sm font-bold tracking-widest uppercase mb-2">Welcome Back</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+            Hi, {userData?.displayName} 👋
+          </h1>
+          <p className="text-gray-400">
+            You&apos;re focusing on <span className="text-white font-medium">{userData?.primaryGoal}</span> this week. Let&apos;s see your progress.
+          </p>
+        </section>
+
+        {/* Quick Stats Grid */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl">
+            <svg className="w-6 h-6 text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <p className="text-2xl font-bold text-white">{plannedMealsCount}</p>
+            <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mt-1">Meals Planned</p>
+          </div>
+          <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl">
+            <svg className="w-6 h-6 text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+            <p className="text-2xl font-bold text-white">{pantryItemCount}</p>
+            <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mt-1">Items in Pantry</p>
+          </div>
+          <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl col-span-2">
+            <div className="flex justify-between items-start mb-3">
+              <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              {spentAmount > (userData?.budgetAmount || 0) ? (
+                <span className="px-2 py-1 text-[10px] font-bold text-red-400 bg-red-950/30 rounded uppercase tracking-wider">Over Budget</span>
+              ) : (
+                <span className="px-2 py-1 text-[10px] font-bold text-[#1CD05D] bg-[#13251A] rounded uppercase tracking-wider">On Budget</span>
+              )}
+            </div>
+            <div className="flex items-end gap-2">
+              <p className="text-2xl font-bold text-white">₦{spentAmount.toLocaleString()}</p>
+              <p className="text-sm text-gray-500 mb-1">/ ₦{(userData?.budgetAmount || 0).toLocaleString()}</p>
+            </div>
+            <div className="w-full h-1.5 mt-3 bg-[#2A2A2A] rounded-full overflow-hidden">
+              <div className={`h-full rounded-full ${spentAmount > (userData?.budgetAmount || 0) ? 'bg-red-500' : 'bg-[#1CD05D]'}`} style={{ width: `${budgetPercentage}%` }}></div>
             </div>
           </div>
+        </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Meal Card 1 */}
-            <div className="bg-white border border-gray-200 rounded-2xl dark:bg-[#111111] dark:border-[#2A2A2A] shadow-sm overflow-hidden flex flex-col">
-              <div className="relative h-48 w-full bg-gray-200">
-                <Image src="/jollof.jpg" alt="Jollof Rice" fill className="object-cover" />
-                <div className="absolute top-4 left-4 space-y-2">
-                  <span className="block px-3 py-1 text-xs font-bold text-white bg-[#1CD05D] rounded-full">-₦1,250 STOCK CREDIT</span>
-                  <span className="block px-3 py-1 text-xs font-bold text-gray-900 bg-white/90 backdrop-blur rounded-full w-max">SEASONAL VALUE</span>
-                </div>
-              </div>
-              <div className="p-5 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Low-Cost Party Jollof</h3>
-                    <p className="text-xs text-gray-500 mt-1">Prep: 45 min • Yield: 4 Bowls</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">TO BUY</p>
-                    <p className="text-xl font-extrabold text-[#1CD05D]">₦3,200</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-auto mb-6 text-sm text-gray-600 dark:text-gray-400 border-t border-gray-100 dark:border-[#2A2A2A] pt-4">
-                  <span>Protein Efficiency</span>
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full bg-[#1CD05D]"></div>
-                    <div className="w-2 h-2 rounded-full bg-[#1CD05D]"></div>
-                    <div className="w-2 h-2 rounded-full bg-[#1CD05D]"></div>
-                    <div className="w-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                  </div>
-                </div>
-                <button className="w-full py-3 text-sm font-bold text-white transition-colors rounded-xl bg-[#1CD05D] hover:bg-[#15b04d] flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                  BUILD GROCERY LIST
-                </button>
-              </div>
-            </div>
-
-            {/* Meal Card 2 */}
-            <div className="bg-white border border-gray-200 rounded-2xl dark:bg-[#111111] dark:border-[#2A2A2A] shadow-sm overflow-hidden flex flex-col">
-              <div className="relative h-48 w-full bg-gray-200">
-                <Image src="/okra.jpg" alt="Okra Soup" fill className="object-cover" />
-                <div className="absolute top-4 left-4 space-y-2">
-                  <span className="block px-3 py-1 text-xs font-bold text-white bg-blue-600 rounded-full">EXTREME VALUE PLAN</span>
-                  <span className="block px-3 py-1 text-xs font-bold text-gray-900 bg-white/90 backdrop-blur rounded-full w-max">LOW COST</span>
-                </div>
-              </div>
-              <div className="p-5 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Fisherman&apos;s Okra</h3>
-                    <p className="text-xs text-gray-500 mt-1">Prep: 25 min • Yield: 3 Bowls</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">TO BUY</p>
-                    <p className="text-xl font-extrabold text-[#1CD05D]">₦1,850</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-auto mb-6 text-sm text-gray-600 dark:text-gray-400 border-t border-gray-100 dark:border-[#2A2A2A] pt-4">
-                  <span>Waste Reduction</span>
-                  <span className="font-bold text-[#1CD05D]">100% Score</span>
-                </div>
-                <button className="w-full py-3 text-sm font-bold text-white transition-colors rounded-xl bg-[#1CD05D] hover:bg-[#15b04d] flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                  BUILD GROCERY LIST
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-       {/* Right Col: Pantry Check */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Pantry Check</h2>
-            <button className="text-xs font-bold text-[#1CD05D] uppercase tracking-wider hover:underline">UPDATE STOCK</button>
-          </div>
-
-          <div className="p-6 bg-white border border-gray-200 rounded-2xl dark:bg-[#111111] dark:border-[#2A2A2A] shadow-sm">
-            <p className="mb-6 text-xs font-bold tracking-wider text-gray-400 uppercase">USAGE IN RECOMMENDATIONS</p>
-            
-            <div className="space-y-6">
-              {/* Item 1 */}
-              <div className="flex items-start gap-4">
-                <div className="w-9 h-9 rounded-lg bg-green-50 dark:bg-[#13251A] flex items-center justify-center shrink-0 text-[#1CD05D]">
-                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                </div>
-                <div className="flex-1 pt-0.5">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-base font-bold text-gray-900 dark:text-white">Long-grain Rice</h4>
-                    <span className="text-xs font-semibold text-gray-500">2.5kg Left</span>
-                  </div>
-                  <span className="inline-block px-2 py-1 text-[10px] bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 rounded mb-4 font-medium">Required for Jollof</span>
-                  
-                  {/* PERFECTLY THIN PROGRESS BAR */}
-                  <div className="w-full h-0.5 bg-gray-200 dark:bg-[#2A2A2A]">
-                    <div className="h-full bg-[#1CD05D]" style={{ width: '80%' }}></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Item 2 */}
-              <div className="flex items-start gap-4">
-                <div className="w-9 h-9 rounded-lg bg-green-50 dark:bg-[#13251A] flex items-center justify-center shrink-0 text-[#1CD05D]">
-                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-                </div>
-                <div className="flex-1 pt-0.5">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-base font-bold text-gray-900 dark:text-white">Vegetable Oil</h4>
-                    <span className="text-xs font-semibold text-gray-500">1.2L Left</span>
-                  </div>
-                  <span className="inline-block px-2 py-1 text-[10px] bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 rounded mb-4 font-medium">Required for All Meals</span>
-                  
-                  <div className="w-full h-0.5 bg-gray-200 dark:bg-[#2A2A2A]">
-                    <div className="h-full bg-[#1CD05D]" style={{ width: '60%' }}></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Item 3 */}
-              <div className="flex items-start gap-4">
-                <div className="w-9 h-9 rounded-lg bg-orange-50 dark:bg-[#2A1B13] flex items-center justify-center shrink-0 text-[#F97316]">
-                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                </div>
-                <div className="flex-1 pt-0.5">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-base font-bold text-gray-900 dark:text-white">Seasoning Cubes</h4>
-                    <span className="text-xs font-bold text-[#F97316]">Low Stock</span>
-                  </div>
-                  <span className="inline-block px-2 py-1 text-[10px] bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 rounded mb-4 font-medium">Crucial for Okra Soup</span>
-                  
-                  <div className="w-full h-0.5 bg-gray-200 dark:bg-[#2A2A2A]">
-                    <div className="h-full bg-[#F97316]" style={{ width: '15%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Insight Box */}
-            <div className="p-4 mt-8 border bg-green-50 border-green-100 rounded-xl dark:bg-[#0A1A12] dark:border-[#132A1C]">
-              <div className="flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-[#1CD05D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <h5 className="text-xs font-bold tracking-wider text-gray-900 uppercase dark:text-white">BUDGET INSIGHT</h5>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Using your existing rice and oil saves you <span className="font-bold text-[#1CD05D]">₦2,100</span> on this week&apos;s meal plan.</p>
-            </div>
-          </div>
-
-          {/* Need to recalculate card */}
-          <div className="p-8 text-center bg-white border border-gray-200 rounded-2xl dark:bg-[#111111] dark:border-[#2A2A2A] shadow-sm">
-            <div className="flex items-center justify-center w-10 h-10 mx-auto mb-4 text-gray-500 border border-gray-200 dark:border-gray-700 rounded-full dark:text-gray-400">
-              <span className="text-lg italic font-serif">?</span>
-            </div>
-            <h4 className="mb-2 text-lg font-bold text-gray-900 dark:text-white">Need to recalculate?</h4>
-            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">Adjust your budget to see how meal recommendations change in real-time.</p>
-            <button className="w-full py-3 text-sm font-bold tracking-wider text-white uppercase transition-colors bg-gray-900 rounded-xl hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
-              Set New Limit
+        {/* Today's Plan */}
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-white">Today&apos;s Menu</h2>
+            <button 
+              onClick={() => router.push('/dashboard/meal-plan')}
+              className="text-sm font-bold text-[#1CD05D] hover:underline"
+            >
+              Edit Plan
             </button>
           </div>
-        </div>
-      </div>
+          
+          {todaysMeals.length === 0 ? (
+            <div className="p-8 border border-dashed border-[#2A2A2A] rounded-2xl flex flex-col items-center justify-center text-center">
+              <svg className="w-10 h-10 text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+              <p className="text-white font-bold mb-1">No meals planned for today</p>
+              <p className="text-sm text-gray-500">Go to your Meal Plan to start adding recipes or cafeteria items.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {todaysMeals.map((meal) => (
+                <div key={meal.id} className={`p-5 border rounded-2xl flex flex-col ${meal.isEaten ? 'bg-[#0A0A0A] border-[#2A2A2A] opacity-60' : 'bg-[#111111] border-[#2A2A2A]'}`}>
+                  <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">{meal.mealType}</p>
+                  <h3 className={`text-lg font-bold mb-1 ${meal.isEaten ? 'text-gray-400 line-through' : 'text-white'}`}>{meal.title}</h3>
+                  <p className="text-sm text-gray-400 mb-6">{meal.source} • ₦{meal.cost.toLocaleString()}</p>
+                  
+                  {!meal.isEaten ? (
+                    <button className="mt-auto w-full py-2.5 text-xs font-bold text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] rounded-lg transition-colors uppercase tracking-widest">
+                      Mark as Eaten
+                    </button>
+                  ) : (
+                    <button className="mt-auto w-full py-2.5 text-xs font-bold text-gray-500 border border-[#2A2A2A] rounded-lg uppercase tracking-widest cursor-default">
+                      Completed
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Recommendations */}
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <svg className="w-5 h-5 text-[#1CD05D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                Suggested For You
+              </h2>
+              <p className="text-sm text-gray-400 mt-1">Based on your budget and preferences.</p>
+            </div>
+          </div>
+
+          {recommendedRecipes.length === 0 ? (
+            <div className="p-8 bg-[#111111] border border-[#2A2A2A] rounded-2xl text-center">
+              <p className="text-gray-500">No recommendations available yet. Try updating your pantry!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendedRecipes.map((recipe) => (
+                <div key={recipe.id} className="bg-[#111111] border border-[#2A2A2A] rounded-2xl overflow-hidden group cursor-pointer hover:border-gray-500 transition-colors">
+                  <div className="relative h-40 w-full bg-[#1A1A1A]">
+                    {recipe.image && (
+                      <Image src={recipe.image} alt={recipe.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    )}
+                    <div className="absolute inset-0 bg-linear-to-t from-[#111111] via-transparent to-transparent opacity-90"></div>
+                    
+                    <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs font-semibold text-white bg-black/50 backdrop-blur-sm px-2 py-1 rounded-md">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      {recipe.prepTime}
+                    </div>
+                  </div>
+                  
+                  <div className="p-5">
+                    <h3 className="text-base font-bold text-white mb-1 truncate">{recipe.title}</h3>
+                    <div className="flex justify-between items-end mt-4">
+                       <p className="text-sm font-bold text-[#1CD05D]">₦{(recipe.estimatedCost || 0).toLocaleString()} <span className="text-xs text-gray-500 font-normal">est.</span></p>
+                       <button className="text-gray-400 hover:text-white transition-colors">
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                       </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+      </main>
     </div>
   );
 }

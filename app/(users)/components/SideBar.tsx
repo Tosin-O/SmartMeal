@@ -1,8 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -11,6 +14,51 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  
+  // Dynamic Budget State
+  const [budgetLimit, setBudgetLimit] = useState(0);
+  const [spentAmount, setSpentAmount] = useState(0);
+  const [isLoadingBudget, setIsLoadingBudget] = useState(true);
+
+  // Fetch Budget Data on Mount
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (!user) return;
+
+      try {
+        setIsLoadingBudget(true);
+        
+        // 1. Get the user's total budget limit
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        let limit = 0;
+        if (userDocSnap.exists()) {
+          limit = Number(userDocSnap.data().budgetAmount) || 0;
+          setBudgetLimit(limit);
+        }
+
+        // 2. Calculate how much they have spent so far (from meal_plans)
+        // In a real app, you'd query where date >= startOfWeek
+        const mealPlansQuery = query(collection(db, 'meal_plans'), where('userId', '==', user.uid));
+        const mealPlansSnap = await getDocs(mealPlansQuery);
+        
+        let totalSpent = 0;
+        mealPlansSnap.forEach((docSnap) => {
+          totalSpent += Number(docSnap.data().cost || 0);
+        });
+        
+        setSpentAmount(totalSpent);
+
+      } catch (error) {
+        console.error("Error fetching sidebar budget data:", error);
+      } finally {
+        setIsLoadingBudget(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const navLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /> },
@@ -24,9 +72,19 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: 'Spending History', href: '/dashboard/history', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /> },
   ];
 
+  // Dynamic Budget Calculations
+  const safeBudget = budgetLimit > 0 ? budgetLimit : 1; 
+  const budgetPercentage = Math.min((spentAmount / safeBudget) * 100, 100);
+  const remaining = budgetLimit - spentAmount;
+  const isOverBudget = spentAmount > budgetLimit;
+
+  // Simple projection calculation (just an example based on current spend)
+  // If they spent X in the first few days, project the full week
+  const projectedSpend = spentAmount > 0 ? Math.round(spentAmount * 1.3) : 0; 
+
   return (
     <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-[#2A2A2A] flex flex-col pt-6 pb-4 overflow-y-auto transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}> 
-    {/* Mobile Close Button - visible only when open on mobile */}
+      {/* Mobile Close Button */}
       <button 
         onClick={onClose}
         className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white lg:hidden"
@@ -36,12 +94,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* Logo */}
       <Link href="/dashboard" className="flex items-center gap-2 px-6 mb-10 text-[#1CD05D]">
-        <Image
-                        src="/logo.svg"
-                        alt="Logo"
-                        width={36}
-                        height={36}
-                 />
+        <Image src="/logo.svg" alt="Logo" width={36} height={36} />
         <span className="text-xl font-bold text-gray-900 dark:text-white">SmartMeal</span>
       </Link>
 
@@ -69,30 +122,54 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         ))}
       </div>
 
-      {/* Budget Widget */}
+      {/* Budget Widget (Now Dynamic) */}
       <div className="px-6 mt-8">
-        <div className="p-4 border rounded-2xl bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#2A2A2A] shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-xs font-bold text-gray-500 tracking-wider uppercase">Budget Status</h4>
-            <span className="px-2 py-1 text-[10px] font-bold text-[#1CD05D] bg-green-100 dark:bg-green-900/30 rounded uppercase">On Track</span>
-          </div>
-          <div className="flex items-end justify-between mb-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Weekly Spent</span>
-            <span className="font-bold text-gray-900 dark:text-white">₦15,400</span>
-          </div>
-          <div className="w-full h-2 mb-4 bg-gray-100 dark:bg-[#2A2A2A] rounded-full overflow-hidden">
-            <div className="h-full bg-[#1CD05D] rounded-full" style={{ width: '60%' }}></div>
-          </div>
-          <div className="flex justify-between text-xs">
-            <div>
-              <p className="text-gray-500 dark:text-gray-400 mb-0.5">Remaining</p>
-              <p className="font-bold text-gray-900 dark:text-white">₦9,600</p>
+        <div className="p-4 border rounded-2xl bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#2A2A2A] shadow-sm relative overflow-hidden">
+          
+          {isLoadingBudget ? (
+            <div className="flex justify-center items-center h-24">
+               <div className="w-5 h-5 border-2 border-[#1CD05D] border-t-transparent rounded-full animate-spin"></div>
             </div>
-            <div className="text-right">
-              <p className="text-gray-500 dark:text-gray-400 mb-0.5">Projected</p>
-              <p className="font-bold text-[#1CD05D]">₦23,200</p>
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-xs font-bold text-gray-500 tracking-wider uppercase">Budget Status</h4>
+                {isOverBudget ? (
+                  <span className="px-2 py-1 text-[10px] font-bold text-red-500 bg-red-100 dark:bg-red-950/30 rounded uppercase tracking-wider">Over Budget</span>
+                ) : (
+                  <span className="px-2 py-1 text-[10px] font-bold text-[#1CD05D] bg-green-100 dark:bg-green-900/30 rounded uppercase tracking-wider">On Track</span>
+                )}
+              </div>
+              
+              <div className="flex items-end justify-between mb-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Weekly Spent</span>
+                <span className="font-bold text-gray-900 dark:text-white">₦{spentAmount.toLocaleString()}</span>
+              </div>
+              
+              <div className="w-full h-2 mb-4 bg-gray-100 dark:bg-[#2A2A2A] rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-1000 ${isOverBudget ? 'bg-red-500' : 'bg-[#1CD05D]'}`} 
+                  style={{ width: `${budgetPercentage}%` }}
+                ></div>
+              </div>
+              
+              <div className="flex justify-between text-xs">
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400 mb-0.5">Remaining</p>
+                  <p className={`font-bold ${remaining < 0 ? 'text-red-500' : 'text-gray-900 dark:text-white'}`}>
+                    {remaining < 0 ? `-₦${Math.abs(remaining).toLocaleString()}` : `₦${remaining.toLocaleString()}`}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-500 dark:text-gray-400 mb-0.5">Projected</p>
+                  <p className={`font-bold ${projectedSpend > budgetLimit ? 'text-red-500' : 'text-[#1CD05D]'}`}>
+                    ₦{projectedSpend.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+
         </div>
       </div>
     </aside>
