@@ -54,8 +54,6 @@ export default function SignupForm() {
         await setDoc(doc(db, "users", user.uid), {
           fullName: fullName,
           email: email,
-          createdAt: new Date(),
-          budgetGoal: 25000,
           currentSpent: 0,
           admin: false // <-- NEW FIELD: Defaults to false for all public signups
         });

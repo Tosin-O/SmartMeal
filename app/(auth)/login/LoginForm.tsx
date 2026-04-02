@@ -48,11 +48,11 @@ export default function LoginForm() {
         if (userData.admin === true) {
           router.push('/admin/dashboard'); 
         } else {
-          router.push('/dashboard'); 
+          router.push('/setup'); 
         }
       } else {
         // Fallback in case the user doc somehow didn't generate during signup
-        router.push('/dashboard');
+        router.push('/setup');
       }
 
     } catch (err: unknown) {
