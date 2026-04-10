@@ -46,23 +46,25 @@ export async function POST(request: Request) {
 
 
     // --- 3. PROCESS CAFETERIA MEALS ---
-    const cafeteriaMeals: MealOption[] = cafeteriaSnap.docs
-      .map(doc => {
-        const data = doc.data();
-        // Only include meals marked as available
-        if (data.isAvailable === false) return null; 
-
-        return {
+   // --- 3. PROCESS CAFETERIA MEALS ---
+    const cafeteriaMeals: MealOption[] = cafeteriaSnap.docs.reduce((acc: MealOption[], doc) => {
+      const data = doc.data();
+      
+      // Only push to the array if the meal is available
+      if (data.isAvailable !== false) {
+        acc.push({
           id: doc.id,
           name: data.name,
           cost: data.price,
           time: AVERAGE_CAFETERIA_WAIT_TIME,
           effort: CAFETERIA_EFFORT_SCORE,
           pantryMatch: CAFETERIA_PANTRY_MATCH,
-          source: 'Cafeteria' as const
-        };
-      })
-      .filter((meal): meal is MealOption => meal !== null); // Remove nulls
+          source: 'Cafeteria'
+        });
+      }
+      
+      return acc;
+    }, []);
 
 
     // --- 4. PROCESS RECIPES ---
