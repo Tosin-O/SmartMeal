@@ -1,50 +1,120 @@
-# 🍽️ SmartMeal
+# 🍽️ Smart Meal
 
-SmartMeal is a modern web application designed to simplify meal planning and recipe discovery. It helps users make better food decisions by providing personalized meal suggestions based on preferences, dietary needs, and available ingredients.
-
-The goal of SmartMeal is to reduce the stress of deciding what to eat while encouraging healthier and more consistent eating habits.
+A budget-first meal planning web application designed for students. Smart Meal helps users generate affordable meal plans, discover recipes, and manage grocery lists — all powered by intelligent decision-making algorithms.
 
 ---
 
-## ✨ Features
+## 📦 Stack
 
-- **Personalized Recommendations**  
-  Get meal suggestions tailored to your preferences and needs.
-
-- **Ingredient-Based Recipe Search**  
-  Discover meals you can prepare using ingredients you already have.
-
-- **Meal Planning**  
-  Organize meals for better daily, weekly or monthly structure.
-
-- **Nutrition Awareness**  
-  Make more informed food choices with basic nutritional insights.
+* **Frontend & Backend:** Next.js
+* **Language:** TypeScript
+* **Styling:** Tailwind CSS
+* **Database:** Firebase
+* **Algorithm:** Hybrid AHP + TOPSIS (Multi-Criteria Decision Making)
 
 ---
 
-## 🛠️ Tech Stack
-
-- **Frontend:** React  
-- **Framework:** Next.js  
-- **Styling:** Tailwind CSS  
-
-The application is built using modern web technologies to ensure a fast, responsive, and user-friendly experience.
-
----
-
-## 🚀 Getting Started
-
-To run the project locally:
+## ✨ Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/Tosin-O/SmartMeal.git
-
-# Navigate into the project directory
-cd SmartMeal
-
-# Install dependencies
 npm install
-
-# Start the development server
 npm run dev
+```
+
+Open `http://localhost:3000` in your browser.
+
+---
+
+## 🎯 Features
+
+* 💸 **Budget-Based Meal Planning** — Generate meals based on a defined budget
+* 🧠 **Smart Recommendations** — Uses AHP + TOPSIS algorithms to rank meals
+* 🛒 **Shopping List Generator** — Automatically extracts ingredients
+* 📥 **Recipe Downloads** — Save meals for offline use
+* 🌍 **Global Meal Options** — Discover meals across different cuisines
+* 📊 **Health Insights** — Basic nutritional awareness for better choices
+
+---
+
+## 🤖 How it Works
+
+Smart Meal uses a **hybrid decision-making model** combining:
+
+### 1. AHP (Analytic Hierarchy Process)
+
+* Assigns weights to criteria such as:
+
+  * Cost
+  * Nutrition
+  * Availability
+  * Preference
+
+### 2. TOPSIS (Technique for Order Preference by Similarity to Ideal Solution)
+
+* Ranks meals based on:
+
+  * Closest to ideal solution (best case)
+  * Farthest from worst case
+
+This ensures users get **optimal meal recommendations** based on real constraints — especially budget.
+
+---
+
+## 🧮 Decision Model Flow
+
+1. User inputs:
+
+   * Budget
+   * Preferences
+   * Dietary needs
+
+2. AHP computes **criteria weights**
+
+3. TOPSIS:
+
+   * Normalizes meal data
+   * Applies weights
+   * Calculates ranking scores
+
+4. System returns:
+
+   * Ranked meal options
+   * Best-fit recommendations
+
+---
+
+
+---
+
+## 🎹 Usage
+
+* Enter your **budget**
+* Select **meal preferences**
+* Generate a **personalized meal plan**
+* View **ranked results**
+* Export recipes or shopping lists
+
+---
+
+## 🚀 Future Improvements
+
+* 🧾 Advanced nutrition tracking
+* 🤖 AI-based meal personalisation
+* 📱 Mobile app version (React Native / Expo)
+* 🧑‍🤝‍🧑 User accounts & saved plans
+* 📈 Analytics dashboard
+
+---
+
+## 👤 Author
+
+**Tosin O.**
+
+* GitHub: https://github.com/Tosin-O
+* Instagram: @codejourneywithtosin
+
+---
+
+## 📀 Preview
+
+*Add screenshots or demo videos here*
