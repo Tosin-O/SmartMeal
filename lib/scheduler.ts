@@ -26,7 +26,7 @@ export function distributeMeals(
   const numDays = duration === 'Monthly' ? 28 : 7;
   const totalMealsToPlan = numDays * 3;
   const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const slots = ['Breakfast', 'Lunch', 'Dinner'];
+  const slots: ('Breakfast' | 'Lunch' | 'Dinner')[] = ['Breakfast', 'Lunch', 'Dinner'];
   
   // 2. INITIALIZE STATE
   const weekPlan: WeekPlan = {};
@@ -37,7 +37,7 @@ export function distributeMeals(
   // 3. VARIETY TRACKERS
   const usageCount: Record<string, number> = {};
   const MAX_USAGE = duration === 'Monthly' ? 6 : 2; // Allow more repeats over a full month
-  let recentMeals: string[] = []; // Tracks recent meals to enforce a cooldown period
+  const recentMeals: string[] = []; // Tracks recent meals to enforce a cooldown period
   let lastSource = ''; // Tracks if the last meal was cooked or bought
 
   // --- THE SCHEDULING LOOP ---
@@ -74,19 +74,19 @@ export function distributeMeals(
       if (affordableMeals.length === 0) return; // Wallet is officially at ₦0
 
       // Filter 2: Apply strict variety rules (Cap usage and check cooldowns)
-      let idealMeals = affordableMeals.filter(meal => 
+      const idealMeals = affordableMeals.filter(meal => 
         (usageCount[meal.id] || 0) < MAX_USAGE && 
         !recentMeals.includes(meal.id)
       );
 
       // Filter 3: Try to alternate between Cafeteria and Recipe if possible
-      let sourceFiltered = idealMeals.filter(meal => meal.source !== lastSource);
+      const sourceFiltered = idealMeals.filter(meal => meal.source !== lastSource);
       
       // Filter 4: THE TOP-K RANDOMIZER
       // Pick randomly from the top 3 best available options so the plan feels fresh every time
       const bestOptions = sourceFiltered.length > 0 ? sourceFiltered : (idealMeals.length > 0 ? idealMeals : affordableMeals);
       const topK = bestOptions.slice(0, 3);
-      let mealChoice = topK[Math.floor(Math.random() * topK.length)];
+      const mealChoice = topK[Math.floor(Math.random() * topK.length)];
 
       // --- ASSIGN MEAL AND UPDATE STATE ---
       if (mealChoice) {

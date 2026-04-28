@@ -7,13 +7,22 @@ import { doc, getDoc, collection, getDocs, addDoc, query, orderBy, limit, server
 import { db, auth } from '@/lib/firebase';
 import { distributeMeals, WeekPlan, MissingIngredient } from '@/lib/scheduler';
 
+interface IngredientData {
+  name?: string;
+  ingredientId?: string;
+  price?: number;
+  estimatedCost?: number;
+  cost?: number;
+  amount?: number | string;
+}
+
 interface DatabaseItem {
   id: string;
   title: string;
   source: 'Recipe' | 'Cafeteria';
   cost: number;
   image?: string;
-  ingredients?: any[]; 
+  ingredients?: (IngredientData | string)[]; 
 }
 
 export default function MealPlanner() {
@@ -22,7 +31,6 @@ export default function MealPlanner() {
   // --- STATE MANAGEMENT ---
   const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   
   // Custom Toast State
   const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -39,6 +47,9 @@ export default function MealPlanner() {
   const [userAllergies, setUserAllergies] = useState<string[]>([]);
   const [userPantry, setUserPantry] = useState<string[]>([]); 
   
+  // Dynamic Budgeting State
+  const [activeTargetBudget, setActiveTargetBudget] = useState<number>(0);
+
   // Store prices from the market_ingredients collection
   const [ingredientPrices, setIngredientPrices] = useState<Record<string, number>>({}); 
 
@@ -60,11 +71,6 @@ export default function MealPlanner() {
   const [availableMeals, setAvailableMeals] = useState<DatabaseItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchingDB, setIsSearchingDB] = useState(false);
-
-  // --- CALCULATE TARGET BUDGET ---
-  const targetBudget = duration === 'Monthly' 
-    ? (dbBudgetPeriod === 'Weekly' ? dbBudget * 4 : dbBudget) 
-    : (dbBudgetPeriod === 'Monthly' ? dbBudget / 4 : dbBudget);
 
   // --- HELPER: SHOW TOAST ---
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -93,7 +99,7 @@ export default function MealPlanner() {
             if (data.allergies && Array.isArray(data.allergies)) setUserAllergies(data.allergies);
             
             if (data.pantry && Array.isArray(data.pantry)) {
-               const pantryItems = data.pantry.map((item: any) => 
+               const pantryItems = data.pantry.map((item: string | { name?: string }) => 
                  typeof item === 'string' ? item.toLowerCase().trim() : (item.name || '').toLowerCase().trim()
                );
                setUserPantry(pantryItems);
@@ -134,44 +140,44 @@ export default function MealPlanner() {
     fetchUserData();
   }, [router]);
 
-  const cloneDay = (dayData: any) => {
-    if (!dayData) return { Breakfast: null, Lunch: null, Dinner: null };
+  const cloneDay = (dayData: WeekPlan[string] | undefined) => {
+    if (!dayData) return { Breakfast: undefined, Lunch: undefined, Dinner: undefined };
     return {
-      Breakfast: dayData.Breakfast ? { ...dayData.Breakfast } : null,
-      Lunch: dayData.Lunch ? { ...dayData.Lunch } : null,
-      Dinner: dayData.Dinner ? { ...dayData.Dinner } : null,
+      Breakfast: dayData.Breakfast ? { ...dayData.Breakfast } : undefined,
+      Lunch: dayData.Lunch ? { ...dayData.Lunch } : undefined,
+      Dinner: dayData.Dinner ? { ...dayData.Dinner } : undefined,
     };
   };
 
   const createEmptyWeek = (): WeekPlan => ({
-    Mon: { Breakfast: null, Lunch: null, Dinner: null },
-    Tue: { Breakfast: null, Lunch: null, Dinner: null },
-    Wed: { Breakfast: null, Lunch: null, Dinner: null },
-    Thu: { Breakfast: null, Lunch: null, Dinner: null },
-    Fri: { Breakfast: null, Lunch: null, Dinner: null },
-    Sat: { Breakfast: null, Lunch: null, Dinner: null },
-    Sun: { Breakfast: null, Lunch: null, Dinner: null },
+    Mon: { Breakfast: undefined, Lunch: undefined, Dinner: undefined },
+    Tue: { Breakfast: undefined, Lunch: undefined, Dinner: undefined },
+    Wed: { Breakfast: undefined, Lunch: undefined, Dinner: undefined },
+    Thu: { Breakfast: undefined, Lunch: undefined, Dinner: undefined },
+    Fri: { Breakfast: undefined, Lunch: undefined, Dinner: undefined },
+    Sat: { Breakfast: undefined, Lunch: undefined, Dinner: undefined },
+    Sun: { Breakfast: undefined, Lunch: undefined, Dinner: undefined },
   });
 
-// --- ROBUST MANUAL SHOPPING LIST UPDATER ---
   const updateManualShoppingList = (plan: Record<number, WeekPlan>, currentPantry: string[], currentPrices: Record<string, number>) => {
     const itemsMap = new Map<string, number>();
     
     Object.values(plan).forEach(week => {
-      Object.values(week).forEach((day: any) => {
+      Object.values(week).forEach((day) => {
         if (!day) return;
-        ['Breakfast', 'Lunch', 'Dinner'].forEach(type => {
+        (['Breakfast', 'Lunch', 'Dinner'] as const).forEach(type => {
           const meal = day[type];
           
-          if (meal && meal.ingredients) {
-            const ings = Array.isArray(meal.ingredients) ? meal.ingredients : [meal.ingredients];
+          if (meal && 'ingredients' in meal && meal.ingredients) {
+            const mealRecord = meal as Record<string, unknown>;
+            const ingsData = mealRecord.ingredients;
+            const ings = Array.isArray(ingsData) ? ingsData : [ingsData];
             
-            ings.forEach((ing: any) => {
-              let rawName = typeof ing === 'string' ? ing : (ing.name || ing.ingredientId || 'Unknown Item');
-              let cleanName = rawName.toLowerCase().replace(/^ing_/, '').replace(/_/g, ' ').trim();
-              
-              // --- FIX: Add explicit string type to 'word' here ---
-              let displayName = cleanName.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            ings.forEach((ingItem) => {
+              const ing = ingItem as IngredientData | string;
+              const rawName = typeof ing === 'string' ? ing : (ing.name || ing.ingredientId || 'Unknown Item');
+              const cleanName = rawName.toLowerCase().replace(/^ing_/, '').replace(/_/g, ' ').trim();
+              const displayName = cleanName.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
               const exactId = typeof ing === 'object' && ing.ingredientId ? ing.ingredientId : null;
               const unitPrice = (exactId && currentPrices[exactId]) || currentPrices[rawName] || currentPrices[cleanName] || 0;
@@ -196,19 +202,18 @@ export default function MealPlanner() {
     if (!userId) return;
 
     setLoading(true);
-    setError(null);
     setCurrentWeek(1);
 
     try {
       // --- 1. PRE-CALCULATE NEXT AVAILABLE MONDAY FROM DATABASE ---
       const plansRef = collection(db, 'users', userId, 'meal_plans');
-      const q = query(plansRef, orderBy('endDate', 'desc'), limit(1));
+      const q = query(plansRef, orderBy('endDate', 'desc'), limit(10));
       const snapshot = await getDocs(q);
 
       let baseDate = new Date();
       baseDate.setHours(0, 0, 0, 0);
 
-      // If a plan already exists, queue this new one up after it ends
+      // Queue logic
       if (!snapshot.empty) {
         const lastPlan = snapshot.docs[0].data();
         const lastEndDate = lastPlan.endDate.toDate();
@@ -216,11 +221,11 @@ export default function MealPlanner() {
 
         if (lastEndDate >= baseDate) {
           baseDate = new Date(lastEndDate);
-          baseDate.setDate(baseDate.getDate() + 1); // Start the day after the last plan ends
+          baseDate.setDate(baseDate.getDate() + 1); 
         }
       }
 
-      // Snap the target date to the next available Monday
+      // Snap to Monday
       const currentDay = baseDate.getDay();
       if (currentDay !== 1) {
         const daysUntilMonday = currentDay === 0 ? 1 : 8 - currentDay;
@@ -230,13 +235,46 @@ export default function MealPlanner() {
       const calculatedStart = new Date(baseDate);
       const calculatedEnd = new Date(calculatedStart);
       
-      // FIXED MATH: A weekly plan starting Mon ends Sun (6 days). Monthly ends in 27 days.
       calculatedEnd.setDate(calculatedStart.getDate() + (duration === 'Monthly' ? 27 : 6));
       
       setPlanStartDate(calculatedStart);
       setPlanEndDate(calculatedEnd);
 
-      // --- 2. GENERATE THE MEALS ---
+      // --- 2. DYNAMIC BUDGET CALCULATION & AUTO-RESET ---
+      const targetMonth = calculatedStart.getMonth();
+      const targetYear = calculatedStart.getFullYear();
+
+      let spentThisMonth = 0;
+      let weeksUsedThisMonth = 0;
+
+      // Group plans by the month they started in
+      snapshot.forEach(doc => {
+        const plan = doc.data();
+        const planStart = plan.startDate.toDate();
+        if (planStart.getMonth() === targetMonth && planStart.getFullYear() === targetYear) {
+          spentThisMonth += plan.totalEstimatedCost || 0;
+          weeksUsedThisMonth += plan.duration === 'Monthly' ? 4 : 1;
+        }
+      });
+
+      const monthlyBudget = dbBudgetPeriod === 'Monthly' ? dbBudget : dbBudget * 4;
+      const remainingMonthBudget = Math.max(0, monthlyBudget - spentThisMonth);
+      const weeksRemainingInMonth = Math.max(1, 4 - weeksUsedThisMonth);
+
+      // Divide the remaining budget by the remaining weeks in the month cycle
+      let calculatedTargetBudget = duration === 'Weekly' 
+        ? remainingMonthBudget / weeksRemainingInMonth 
+        : remainingMonthBudget;
+
+      // Fail-safe to avoid sending 0 to the AI algorithm if budget is tapped out
+      if (calculatedTargetBudget <= 0) {
+        calculatedTargetBudget = monthlyBudget / (duration === 'Monthly' ? 1 : 4);
+      }
+
+      // Save to state for the UI
+      setActiveTargetBudget(calculatedTargetBudget);
+
+      // --- 3. GENERATE THE MEALS ---
       const weeksToGenerate = duration === 'Monthly' ? 4 : 1;
 
       if (mode === 'Manual') {
@@ -257,7 +295,7 @@ export default function MealPlanner() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          budgetGoal: targetBudget, 
+          budgetGoal: calculatedTargetBudget, // <-- Uses the newly calculated fraction
           uid: userId, 
           allergies: userAllergies 
         })
@@ -266,7 +304,7 @@ export default function MealPlanner() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Failed to fetch recommendations.');
 
-      const { weekPlan, missingIngredients } = distributeMeals(data.results, targetBudget, duration);
+      const { weekPlan, missingIngredients } = distributeMeals(data.results, calculatedTargetBudget, duration);
       
       const newPlan: Record<number, WeekPlan> = {};
       let spent = 0;
@@ -274,29 +312,30 @@ export default function MealPlanner() {
       if (duration === 'Monthly') {
         for (let w = 1; w <= 4; w++) {
           newPlan[w] = {
-            Mon: cloneDay((weekPlan as any)[`W${w} Mon`]),
-            Tue: cloneDay((weekPlan as any)[`W${w} Tue`]),
-            Wed: cloneDay((weekPlan as any)[`W${w} Wed`]),
-            Thu: cloneDay((weekPlan as any)[`W${w} Thu`]),
-            Fri: cloneDay((weekPlan as any)[`W${w} Fri`]),
-            Sat: cloneDay((weekPlan as any)[`W${w} Sat`]),
-            Sun: cloneDay((weekPlan as any)[`W${w} Sun`]),
+            Mon: cloneDay(weekPlan[`W${w} Mon`]),
+            Tue: cloneDay(weekPlan[`W${w} Tue`]),
+            Wed: cloneDay(weekPlan[`W${w} Wed`]),
+            Thu: cloneDay(weekPlan[`W${w} Thu`]),
+            Fri: cloneDay(weekPlan[`W${w} Fri`]),
+            Sat: cloneDay(weekPlan[`W${w} Sat`]),
+            Sun: cloneDay(weekPlan[`W${w} Sun`]),
           };
         }
       } else {
         newPlan[1] = {
-          Mon: cloneDay(weekPlan.Mon),
-          Tue: cloneDay(weekPlan.Tue),
-          Wed: cloneDay(weekPlan.Wed),
-          Thu: cloneDay(weekPlan.Thu),
-          Fri: cloneDay(weekPlan.Fri),
-          Sat: cloneDay(weekPlan.Sat),
-          Sun: cloneDay(weekPlan.Sun),
+          Mon: cloneDay(weekPlan.Mon || weekPlan['Mon']),
+          Tue: cloneDay(weekPlan.Tue || weekPlan['Tue']),
+          Wed: cloneDay(weekPlan.Wed || weekPlan['Wed']),
+          Thu: cloneDay(weekPlan.Thu || weekPlan['Thu']),
+          Fri: cloneDay(weekPlan.Fri || weekPlan['Fri']),
+          Sat: cloneDay(weekPlan.Sat || weekPlan['Sat']),
+          Sun: cloneDay(weekPlan.Sun || weekPlan['Sun']),
         };
       }
 
       Object.values(newPlan).forEach(week => {
-        Object.values(week).forEach((day: any) => {
+        Object.values(week).forEach((day) => {
+          if (!day) return;
           if (day.Breakfast) spent += day.Breakfast.cost;
           if (day.Lunch) spent += day.Lunch.cost;
           if (day.Dinner) spent += day.Dinner.cost;
@@ -308,32 +347,34 @@ export default function MealPlanner() {
       setShoppingList(missingIngredients);
       setStep(2); 
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      showToast('error', err.message);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      showToast('error', errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSavePlan = async () => {
-    // Rely strictly on the state values so the UI and DB match perfectly
     if (!userId || !generatedPlan || !planStartDate || !planEndDate) return;
     setIsSaving(true);
 
     try {
       const plansRef = collection(db, 'users', userId, 'meal_plans');
 
+      // 1. SAVE THE MEAL PLAN
       const planDocRef = await addDoc(plansRef, {
         createdAt: serverTimestamp(),
         startDate: planStartDate,
         endDate: planEndDate,
         duration: duration,
-        targetBudget: targetBudget,
+        targetBudget: activeTargetBudget, // <-- Records the dynamically calculated budget
         totalEstimatedCost: totalSpent,
         schedule: generatedPlan,
       });
 
+      // 2. SAVE THE GROCERY LIST
       if (shoppingList && shoppingList.length > 0) {
         const groceryRef = collection(db, 'users', userId, 'grocery_lists');
         
@@ -425,17 +466,18 @@ export default function MealPlanner() {
     const updatedWeek = { ...updatedPlan[currentWeek] };
     const updatedDay = { ...updatedWeek[activeDay] };
     
-    const existingMeal = updatedDay[activeMealType] as any;
-    const costDifference = item.cost - (existingMeal ? existingMeal.cost : 0);
+    const existingMeal = updatedDay[activeMealType];
+    const costDifference = item.cost - (existingMeal?.cost ?? 0);
 
     updatedDay[activeMealType] = { 
+        id: item.id,
         name: item.title, 
         cost: item.cost, 
         source: item.source,
         ingredients: item.ingredients || []
-    } as any;
+    } as unknown as WeekPlan[string]['Breakfast'];
     
-    updatedWeek[activeDay] = updatedDay as any;
+    updatedWeek[activeDay] = updatedDay;
     updatedPlan[currentWeek] = updatedWeek;
     
     setGeneratedPlan(updatedPlan);
@@ -451,15 +493,15 @@ export default function MealPlanner() {
   const handleRemoveMeal = (day: keyof WeekPlan, type: 'Breakfast' | 'Lunch' | 'Dinner') => {
     if (!generatedPlan) return;
     
-    const meal = generatedPlan[currentWeek]?.[day]?.[type] as any;
+    const meal = generatedPlan[currentWeek]?.[day]?.[type];
     if (!meal) return;
 
     const updatedPlan = { ...generatedPlan };
     const updatedWeek = { ...updatedPlan[currentWeek] };
     const updatedDay = { ...updatedWeek[day] };
     
-    updatedDay[type] = null as any;
-    updatedWeek[day] = updatedDay as any;
+    updatedDay[type] = undefined;
+    updatedWeek[day] = updatedDay;
     updatedPlan[currentWeek] = updatedWeek;
     
     setGeneratedPlan(updatedPlan);
@@ -486,7 +528,7 @@ export default function MealPlanner() {
       
       {/* --- CUSTOM TOAST NOTIFICATION --- */}
       {toast && (
-        <div className={`fixed top-6 right-6 z-[100] px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-5 fade-in duration-300 ${
+        <div className={`fixed top-6 right-6 z-100 px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-5 fade-in duration-300 ${
           toast.type === 'success' ? 'bg-[#13251A] border border-[#1CD05D] text-[#1CD05D]' : 'bg-red-950 border border-red-500 text-red-400'
         }`}>
           {toast.type === 'success' ? (
@@ -501,7 +543,7 @@ export default function MealPlanner() {
         </div>
       )}
 
-      <main className="p-6 md:p-8 max-w-[1000px] mx-auto w-full animate-in fade-in duration-500">
+      <main className="p-6 md:p-8 max-w-250 mx-auto w-full animate-in fade-in duration-500">
         
         {/* STEP 1: SETUP */}
         {step === 1 && (
@@ -532,7 +574,7 @@ export default function MealPlanner() {
                   </div>
                   <h3 className="text-xl font-bold text-white mb-2">AI Auto-Generate</h3>
                   <p className="text-sm text-gray-400 leading-relaxed mb-8">
-                    Let our algorithm optimize for your budget and pantry. We'll curate a balanced schedule of recipes that minimize waste and maximize savings.
+                    Let our algorithm optimize for your budget and pantry. We&apos;ll curate a balanced schedule of recipes that minimize waste and maximize savings.
                   </p>
                   <div className="mt-auto">
                     <p className={`text-xs font-bold transition-colors flex items-center gap-1 ${mode === 'Auto' ? 'text-[#1CD05D]' : 'text-gray-500'}`}>
@@ -578,7 +620,7 @@ export default function MealPlanner() {
 
             {/* Generate Button */}
             <div className="pt-6 flex justify-center">
-              <button onClick={handleGenerate} disabled={loading} className="w-[300px] py-3.5 rounded-xl font-bold text-sm text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              <button onClick={handleGenerate} disabled={loading} className="w-75 py-3.5 rounded-xl font-bold text-sm text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 {loading ? <><div className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>Processing...</> : <>
                   Generate Meal Plan
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2 8.6 4.5 10 7 7.5 5.6zm12 9.8l-2.5 1.4 1.4-2.5L17 11.8l2.5 1.4L22 11.8l-1.4 2.5 1.4 2.5-2.5-1.4zM22 2l-2.5 1.4L18.1 2l1.4 2.5-1.4 2.5 2.5-1.4L23.1 7l-1.4-2.5L23.1 2zM3.4 22L1.9 20.6l15.6-15.6 1.5 1.5L3.4 22z"/></svg>
@@ -590,7 +632,7 @@ export default function MealPlanner() {
 
         {/* STEP 2: DASHBOARD VIEW */}
         {step === 2 && generatedPlan && (
-          <div className="space-y-8 animate-in fade-in duration-500 max-w-[1200px] mx-auto">
+          <div className="space-y-8 animate-in fade-in duration-500 max-w-300 mx-auto">
             
             <div className="flex flex-col mb-2">
               <div className="flex justify-between items-center mb-1">
@@ -607,7 +649,7 @@ export default function MealPlanner() {
               <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl">
                 <div className="flex justify-between items-start mb-3">
                   <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  {totalSpent > targetBudget ? (
+                  {totalSpent > activeTargetBudget ? (
                     <span className="px-2 py-1 text-[10px] font-bold text-red-400 bg-red-950/30 rounded uppercase tracking-wider">Over Budget</span>
                   ) : (
                     <span className="px-2 py-1 text-[10px] font-bold text-[#1CD05D] bg-[#13251A] rounded uppercase tracking-wider">On Budget</span>
@@ -615,10 +657,10 @@ export default function MealPlanner() {
                 </div>
                 <div className="flex items-end gap-2">
                   <p className="text-2xl font-bold text-white">₦{totalSpent.toLocaleString()}</p>
-                  <p className="text-sm text-gray-500 mb-1">/ ₦{targetBudget.toLocaleString()}</p>
+                  <p className="text-sm text-gray-500 mb-1">/ ₦{activeTargetBudget.toLocaleString()}</p>
                 </div>
                 <div className="w-full h-1.5 mt-3 bg-[#2A2A2A] rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${totalSpent > targetBudget ? 'bg-red-500' : 'bg-[#1CD05D]'}`} style={{ width: `${Math.min((totalSpent / targetBudget) * 100, 100)}%` }}></div>
+                  <div className={`h-full rounded-full ${totalSpent > activeTargetBudget ? 'bg-red-500' : 'bg-[#1CD05D]'}`} style={{ width: `${Math.min((totalSpent / activeTargetBudget) * 100, 100)}%` }}></div>
                 </div>
               </div>
               
@@ -666,31 +708,37 @@ export default function MealPlanner() {
                       
                       {(['Breakfast', 'Lunch', 'Dinner'] as const).map(type => {
                         const meal = dayData?.[type];
+                        
+                        // Extracting the name properly to avoid TypeScript errors
+                        const mealData = meal as { name?: string; title?: string; cost?: number; source?: string } | undefined | null;
+                        const displayName = mealData?.name || mealData?.title || 'Unknown Meal';
+
                         return (
                           <div key={type} className="flex-1 flex flex-col">
                             <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">{type}</span>
                             {meal ? (
-                              <div className="bg-[#1A1A1A] p-3 rounded-xl border border-[#2A2A2A] group relative flex flex-col justify-center min-h-[70px]">
+                              <div className="bg-[#1A1A1A] p-3 rounded-xl border border-[#2A2A2A] group relative flex flex-col justify-center min-h-17.5">
+                                {/* Delete Hover Button */}
                                 <button onClick={() => handleRemoveMeal(day, type)} className="absolute -top-2 -right-2 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all bg-[#111111] border border-[#2A2A2A] rounded-full p-1 z-20 shadow-lg">
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                                 
                                 <div onClick={() => openModal(day, type)} className="cursor-pointer relative group/tooltip w-full h-full flex flex-col justify-between">
-                                  <p className="font-bold text-white text-sm truncate mb-1 pr-1">{meal.name || (meal as any).title}</p>
+                                  <p className="font-bold text-white text-sm truncate mb-1 pr-1">{displayName}</p>
                                   
-                                  <div className="absolute z-50 left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover/tooltip:block w-max max-w-[220px] bg-[#1CD05D] text-gray-900 text-xs font-bold py-1.5 px-3 rounded shadow-xl whitespace-normal text-center pointer-events-none">
-                                    {meal.name || (meal as any).title}
+                                  <div className="absolute z-50 left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover/tooltip:block w-max max-w-55 bg-[#1CD05D] text-gray-900 text-xs font-bold py-1.5 px-3 rounded shadow-xl whitespace-normal text-center pointer-events-none">
+                                    {displayName}
                                     <div className="absolute top-full left-1/2 w-2 h-2 bg-[#1CD05D] transform -translate-x-1/2 -translate-y-1/2 rotate-45"></div>
                                   </div>
 
                                   <p className="text-[10px] font-bold text-gray-500 flex items-center justify-between">
-                                    <span className={`${meal.source === 'Recipe' ? 'text-[#1CD05D]' : 'text-blue-400'} uppercase tracking-wider`}>{meal.source}</span>
-                                    <span>₦{meal.cost}</span>
+                                    <span className={`${mealData?.source === 'Recipe' ? 'text-[#1CD05D]' : 'text-blue-400'} uppercase tracking-wider`}>{mealData?.source}</span>
+                                    <span>₦{mealData?.cost}</span>
                                   </p>
                                 </div>
                               </div>
                             ) : (
-                              <div onClick={() => openModal(day, type)} className="border border-dashed border-[#2A2A2A] rounded-xl flex items-center justify-center min-h-[70px] hover:border-[#1CD05D] hover:bg-[#1CD05D]/5 cursor-pointer transition-colors group">
+                              <div onClick={() => openModal(day, type)} className="border border-dashed border-[#2A2A2A] rounded-xl flex items-center justify-center min-h-17.5 hover:border-[#1CD05D] hover:bg-[#1CD05D]/5 cursor-pointer transition-colors group">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 group-hover:text-[#1CD05D] flex items-center gap-1">
                                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg> Add
                                 </span>
@@ -724,10 +772,10 @@ export default function MealPlanner() {
                 {shoppingList.length === 0 ? (
                   <div className="p-8 border border-dashed border-[#2A2A2A] rounded-xl text-center">
                     <p className="text-gray-400 text-sm font-bold">No ingredients required</p>
-                    <p className="text-gray-600 text-xs mt-1">Your pantry covers it, or you're eating at the cafe.</p>
+                    <p className="text-gray-600 text-xs mt-1">Your pantry covers it, or you&apos;re eating at the cafe.</p>
                   </div>
                 ) : (
-                  <ul className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin">
+                  <ul className="flex flex-col gap-2 max-h-75 overflow-y-auto pr-2 scrollbar-thin">
                     {shoppingList.map((item, idx) => (
                       <li key={idx} className="bg-[#1A1A1A] px-4 py-3 rounded-xl flex justify-between items-center border border-[#2A2A2A]">
                         <div className="flex items-center gap-3">
@@ -745,7 +793,7 @@ export default function MealPlanner() {
 
               {/* Right Side: Action Card */}
               <div className="md:w-72 bg-[#111111] border border-[#2A2A2A] p-6 rounded-2xl flex flex-col justify-center items-center text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1CD05D]/5 to-transparent"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-[#1CD05D]/5 to-transparent"></div>
                 <div className="relative z-10 w-full">
                   <h3 className="text-lg font-bold text-white mb-2">Ready to commit?</h3>
                   <p className="text-xs text-gray-400 mb-6">Saving this plan will sync it to your dashboard and finalize your grocery list.</p>

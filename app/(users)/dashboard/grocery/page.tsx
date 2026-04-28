@@ -172,7 +172,7 @@ export default function GroceryListPage() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white pb-20 lg:pb-8">
-      <main className="p-6 md:p-8 max-w-[800px] mx-auto w-full animate-in fade-in duration-500">
+      <main className="p-6 md:p-8 max-w-200 mx-auto w-full animate-in fade-in duration-500">
         
         {/* Header */}
         <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -184,7 +184,7 @@ export default function GroceryListPage() {
             </p>
           </div>
           
-          <div className="bg-[#111111] border border-[#2A2A2A] rounded-xl p-4 min-w-[200px]">
+          <div className="bg-[#111111] border border-[#2A2A2A] rounded-xl p-4 min-w-50">
             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Estimated List Total</p>
             <p className="text-2xl font-bold text-[#1CD05D]">₦{totalCost.toLocaleString()}</p>
           </div>
@@ -221,7 +221,7 @@ export default function GroceryListPage() {
             
             {activeItems.length === 0 ? (
               <div className="border border-dashed border-[#2A2A2A] rounded-2xl p-8 text-center bg-[#111111]/50">
-                <p className="text-gray-500 text-sm font-medium">No items left to buy! You're all set.</p>
+                <p className="text-gray-500 text-sm font-medium">No items left to buy! You&apos;re all set.</p>
               </div>
             ) : (
               <div className="space-y-2">
