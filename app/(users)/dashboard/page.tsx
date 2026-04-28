@@ -190,7 +190,7 @@ export default function UserDashboard() {
         <section className="mb-10">
           <p className="text-[#1CD05D] text-sm font-bold tracking-widest uppercase mb-2">Welcome Back</p>
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-            Hi, {userData?.displayName?.split(' ')[0]} 👋
+            Hi, {userData?.displayName}  👋
           </h1>
           <p className="text-gray-400">
             You&apos;re focusing on <span className="text-white font-medium">{userData?.primaryGoal}</span> this cycle. Let&apos;s check your progress.
