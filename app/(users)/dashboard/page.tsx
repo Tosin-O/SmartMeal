@@ -146,17 +146,17 @@ export default function UserDashboard() {
 
         {/* Quick Stats Grid */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl">
+          <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#1CD05D]/5">
             <svg className="w-6 h-6 text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             <p className="text-2xl font-bold text-white">{plannedMealsCount}</p>
             <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mt-1">Meals Planned</p>
           </div>
-          <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl">
+          <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#1CD05D]/5">
             <svg className="w-6 h-6 text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
             <p className="text-2xl font-bold text-white">{pantryItemCount}</p>
             <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mt-1">Items in Pantry</p>
           </div>
-          <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl col-span-2">
+          <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl col-span-2 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#1CD05D]/5">
             <div className="flex justify-between items-start mb-3">
               <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               {spentAmount > (userData?.budgetAmount || 0) ? (

@@ -89,8 +89,9 @@ export type MealOption = {
   cost: number;
   time: number;
   effort: number;
-  pantryMatch: number; // Percentage (e.g., 0.8 for 80%)
+  pantryMatch: number;
   source: 'Cafeteria' | 'Recipe';
+  missingItems?: { name: string, cost: number }[]; // <-- ADD THIS LINE
 };
 
 // 1. AHP: Calculate Weights for 4 Criteria
