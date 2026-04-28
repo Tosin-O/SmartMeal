@@ -4,9 +4,9 @@ import { MealOption } from './mcdm';
 // --- TYPES ---
 export type WeekPlan = {
   [day: string]: {
-    Breakfast?: MealOption;
-    Lunch?: MealOption;
-    Dinner?: MealOption;
+    Breakfast?: MealOption| null;
+    Lunch?: MealOption| null;
+    Dinner?: MealOption| null;
   }
 };
 
