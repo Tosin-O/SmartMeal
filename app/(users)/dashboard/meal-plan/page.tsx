@@ -153,6 +153,7 @@ export default function MealPlanner() {
     Sun: { Breakfast: null, Lunch: null, Dinner: null },
   });
 
+// --- ROBUST MANUAL SHOPPING LIST UPDATER ---
   const updateManualShoppingList = (plan: Record<number, WeekPlan>, currentPantry: string[], currentPrices: Record<string, number>) => {
     const itemsMap = new Map<string, number>();
     
@@ -168,7 +169,9 @@ export default function MealPlanner() {
             ings.forEach((ing: any) => {
               let rawName = typeof ing === 'string' ? ing : (ing.name || ing.ingredientId || 'Unknown Item');
               let cleanName = rawName.toLowerCase().replace(/^ing_/, '').replace(/_/g, ' ').trim();
-              let displayName = cleanName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+              
+              // --- FIX: Add explicit string type to 'word' here ---
+              let displayName = cleanName.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
               const exactId = typeof ing === 'object' && ing.ingredientId ? ing.ingredientId : null;
               const unitPrice = (exactId && currentPrices[exactId]) || currentPrices[rawName] || currentPrices[cleanName] || 0;
