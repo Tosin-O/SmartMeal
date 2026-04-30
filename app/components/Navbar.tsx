@@ -15,13 +15,7 @@ export default function Navbar() {
         <span className="text-xl font-bold text-gray-900 dark:text-white lg:text-2xl">SmartMeal</span>
       </Link>
 
-      {/* Center Links (Hidden on Mobile) */}
-      <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600 dark:text-gray-300">
-        <Link href="#features" className="hover:text-gray-900 dark:hover:text-white transition-colors">Features</Link>
-        <Link href="#pricing" className="hover:text-gray-900 dark:hover:text-white transition-colors">Pricing</Link>
-        <Link href="#recipes" className="hover:text-gray-900 dark:hover:text-white transition-colors">Recipes</Link>
-        <Link href="#blog" className="hover:text-gray-900 dark:hover:text-white transition-colors">Blog</Link>
-      </div>
+      
 
       {/* Auth Buttons */}
       <div className="flex items-center gap-4">
