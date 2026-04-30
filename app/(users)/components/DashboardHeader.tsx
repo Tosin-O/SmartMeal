@@ -143,21 +143,21 @@ export default function DashboardHeader({ setSidebarOpen }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between p-6 bg-[#0A0A0A]/80 backdrop-blur-md border-b border-[#2A2A2A]">  
+    <header className="sticky top-0 z-30 flex items-center justify-between p-6 bg-white/80 dark:bg-[#0A0A0A]/80 backdrop-blur-md border-b border-gray-200 dark:border-[#2A2A2A] transition-colors duration-300">  
       {/* Left: Search & Mobile Menu Button */}
       <div className="flex items-center gap-4 flex-1 max-w-lg relative" ref={searchRef}>
         
         {/* Mobile Menu Toggle */}
         <button 
           onClick={() => setSidebarOpen(true)}
-          className="p-2 -ml-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white lg:hidden"
+          className="p-2 -ml-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white lg:hidden transition-colors"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
         </button>
 
         {/* Live Search Input */}
         <form onSubmit={handleSearchSubmit} className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400 dark:text-gray-500">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
           <input 
@@ -166,7 +166,7 @@ export default function DashboardHeader({ setSidebarOpen }: HeaderProps) {
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => searchQuery.length > 1 && setIsSearchOpen(true)}
             placeholder="Search recipes, ingredients..." 
-            className="w-full py-3 pl-12 pr-10 rounded-xl outline-none transition-colors border text-gray-900 bg-white border-gray-200 placeholder-gray-400 focus:border-[#1CD05D] focus:ring-1 focus:ring-[#1CD05D] dark:bg-[#1A1A1A] dark:border-[#2A2A2A] dark:text-white dark:placeholder-gray-500" 
+            className="w-full py-3 pl-12 pr-10 rounded-xl outline-none transition-colors border text-gray-900 bg-gray-50 border-gray-200 placeholder-gray-400 focus:border-[#1CD05D] focus:ring-1 focus:ring-[#1CD05D] dark:bg-[#1A1A1A] dark:border-[#2A2A2A] dark:text-white dark:placeholder-gray-500" 
           />
           
           {/* Clear Search Button (visible only when there's text) */}
@@ -174,7 +174,7 @@ export default function DashboardHeader({ setSidebarOpen }: HeaderProps) {
             <button 
               type="button"
               onClick={clearSearch}
-              className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"
+              className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-white transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
@@ -229,15 +229,11 @@ export default function DashboardHeader({ setSidebarOpen }: HeaderProps) {
       {/* Right: Notifications & Profile Dropdown */}
       <div className="flex items-center gap-4 relative" ref={profileRef}>
         
-        {/* Notification Bell */}
-        <button className="p-2 text-gray-400 transition-colors border border-gray-200 rounded-full hover:bg-gray-100 dark:border-[#2A2A2A] dark:hover:bg-[#1A1A1A]">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-        </button>
         
         {/* Avatar Button */}
         <button 
           onClick={() => setIsProfileOpen(!isProfileOpen)}
-          className="w-10 h-10 overflow-hidden bg-[#1A1A1A] rounded-full border-2 border-white dark:border-[#111111] hover:border-[#1CD05D] transition-colors focus:outline-none relative"
+          className="w-10 h-10 overflow-hidden bg-gray-100 dark:bg-[#1A1A1A] rounded-full border-2 border-gray-200 dark:border-[#111111] hover:border-[#1CD05D] dark:hover:border-[#1CD05D] transition-colors focus:outline-none relative"
         >
           <Image 
             src="/user-avatar.jpg" 
@@ -247,7 +243,7 @@ export default function DashboardHeader({ setSidebarOpen }: HeaderProps) {
             className="object-cover absolute inset-0 z-10"
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
-          <div className="w-full h-full flex items-center justify-center bg-[#1A1A1A] text-gray-400 absolute inset-0">
+          <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-[#1A1A1A] text-gray-400 dark:text-gray-500 absolute inset-0">
              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
           </div>
         </button>

@@ -285,7 +285,7 @@ export default function GroceryListPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-[#1CD05D] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -296,14 +296,14 @@ export default function GroceryListPage() {
   const totalPendingItems = lists.filter(l => l.status === 'active').reduce((acc, l) => acc + l.items.filter(i => !i.isBought).length, 0);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white pb-20 lg:pb-8 relative">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-900 dark:text-white pb-20 lg:pb-8 relative transition-colors duration-300">
       
       {/* --- CREATE NEW LIST MODAL --- */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-[#111111] border border-[#2A2A2A] rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
-            <h2 className="text-xl font-bold text-white mb-2">Create New List</h2>
-            <p className="text-sm text-gray-400 mb-6">Create a custom shopping list separate from your meal plans.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Create New List</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Create a custom shopping list separate from your meal plans.</p>
             
             <form onSubmit={handleCreateList}>
               <input 
@@ -311,21 +311,21 @@ export default function GroceryListPage() {
                 value={newListTitle}
                 onChange={(e) => setNewListTitle(e.target.value)}
                 placeholder="e.g., Weekend Party, Office Snacks..."
-                className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-sm text-white focus:border-[#1CD05D] outline-none transition-colors mb-6"
+                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:border-[#1CD05D] outline-none transition-colors mb-6"
                 autoFocus
               />
               <div className="flex gap-3">
                 <button 
                   type="button" 
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="flex-1 py-3 text-sm font-bold text-gray-400 bg-[#1A1A1A] rounded-xl hover:bg-[#2A2A2A] transition-colors"
+                  className="flex-1 py-3 text-sm font-bold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-[#1A1A1A] rounded-xl hover:bg-gray-200 dark:hover:bg-[#2A2A2A] transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
                   disabled={!newListTitle.trim() || isCreatingList}
-                  className="flex-1 py-3 text-sm font-bold text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] rounded-xl transition-colors disabled:opacity-50"
+                  className="flex-1 py-3 text-sm font-bold text-black dark:text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] rounded-xl transition-colors disabled:opacity-50"
                 >
                   {isCreatingList ? 'Creating...' : 'Create List'}
                 </button>
@@ -344,15 +344,15 @@ export default function GroceryListPage() {
             <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
                 <p className="text-[#1CD05D] text-[10px] font-bold tracking-[0.15em] uppercase mb-2">Supermarket Hub</p>
-                <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Shopping Lists</h1>
-                <p className="text-gray-400 text-sm max-w-md leading-relaxed">
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">Shopping Lists</h1>
+                <p className="text-gray-600 dark:text-gray-400 text-sm max-w-md leading-relaxed">
                   Manage all your grocery needs. Sync items directly to your pantry when you&apos;re done shopping.
                 </p>
               </div>
               
               <button 
                 onClick={() => setIsCreateModalOpen(true)}
-                className="bg-[#1CD05D] text-gray-900 px-6 py-3.5 rounded-xl text-sm font-bold hover:bg-[#15b04d] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#1CD05D]/20"
+                className="bg-[#1CD05D] text-black dark:text-gray-900 px-6 py-3.5 rounded-xl text-sm font-bold hover:bg-[#15b04d] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#1CD05D]/20"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                 Create New List
@@ -361,29 +361,29 @@ export default function GroceryListPage() {
 
             {/* Aesthetic Stats Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-               <div className="bg-[#111111] border border-[#2A2A2A] rounded-2xl p-5 flex flex-col justify-center">
+               <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-5 flex flex-col justify-center">
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Lists</p>
-                  <p className="text-3xl font-bold text-white">{lists.length}</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{lists.length}</p>
                </div>
-               <div className="bg-[#111111] border border-[#2A2A2A] rounded-2xl p-5 flex flex-col justify-center">
+               <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-5 flex flex-col justify-center">
                   <p className="text-[10px] font-bold text-[#1CD05D] uppercase tracking-widest mb-1">Active Lists</p>
-                  <p className="text-3xl font-bold text-white">{activeListsCount}</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{activeListsCount}</p>
                </div>
-               <div className="bg-[#111111] border border-[#2A2A2A] rounded-2xl p-5 flex flex-col justify-center col-span-2 md:col-span-2">
+               <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-5 flex flex-col justify-center col-span-2 md:col-span-2">
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Pending Items</p>
                   <div className="flex items-end gap-3">
-                    <p className="text-3xl font-bold text-white">{totalPendingItems}</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalPendingItems}</p>
                     <p className="text-sm text-gray-500 mb-1 leading-none">items across all active lists</p>
                   </div>
                </div>
             </div>
 
             {lists.length === 0 ? (
-               <div className="border border-dashed border-[#2A2A2A] rounded-2xl p-12 text-center bg-[#111111]/30">
-                 <div className="w-12 h-12 bg-[#1A1A1A] rounded-full flex items-center justify-center mx-auto mb-4 text-gray-500">
+               <div className="border border-dashed border-gray-300 dark:border-[#2A2A2A] rounded-2xl p-12 text-center bg-gray-50/50 dark:bg-[#111111]/30">
+                 <div className="w-12 h-12 bg-gray-100 dark:bg-[#1A1A1A] rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400 dark:text-gray-500">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                  </div>
-                 <p className="text-white text-base font-bold mb-1">No shopping lists found</p>
+                 <p className="text-gray-900 dark:text-white text-base font-bold mb-1">No shopping lists found</p>
                  <p className="text-gray-500 text-sm max-w-sm mx-auto">Create a new manual list or generate a meal plan to automatically build your groceries here.</p>
                </div>
             ) : (
@@ -397,23 +397,23 @@ export default function GroceryListPage() {
                     <div 
                       key={list.id} 
                       onClick={() => setSelectedListId(list.id)} 
-                      className={`bg-[#111111] border rounded-2xl p-6 cursor-pointer transition-all duration-300 flex flex-col h-full group ${list.status === 'completed' ? 'border-[#2A2A2A] opacity-60' : 'border-[#2A2A2A] hover:border-[#1CD05D]/50 shadow-lg hover:shadow-[#1CD05D]/5'}`}
+                      className={`bg-white dark:bg-[#111111] border rounded-2xl p-6 cursor-pointer transition-all duration-300 flex flex-col h-full group ${list.status === 'completed' ? 'border-gray-200 dark:border-[#2A2A2A] opacity-60' : 'border-gray-200 dark:border-[#2A2A2A] hover:border-[#1CD05D]/50 shadow-lg hover:shadow-[#1CD05D]/5'}`}
                     >
                       <div className="flex justify-between items-start mb-6">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <div className={`w-2.5 h-2.5 rounded-full ${list.status === 'completed' ? 'bg-gray-600' : 'bg-[#1CD05D] shadow-[0_0_8px_rgba(28,208,93,0.5)]'}`}></div>
-                            <h3 className={`font-bold text-lg line-clamp-1 pr-4 ${list.status === 'completed' ? 'text-gray-400 line-through' : 'text-white'}`}>
+                            <div className={`w-2.5 h-2.5 rounded-full ${list.status === 'completed' ? 'bg-gray-400 dark:bg-gray-600' : 'bg-[#1CD05D] shadow-[0_0_8px_rgba(28,208,93,0.5)]'}`}></div>
+                            <h3 className={`font-bold text-lg line-clamp-1 pr-4 ${list.status === 'completed' ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-white'}`}>
                               {displayTitle}
                             </h3>
                           </div>
                           <p className="text-gray-500 text-xs pl-4 flex items-center gap-2">
                             <span>{list.items.length} items</span>
-                            <span className="w-1 h-1 rounded-full bg-gray-700"></span>
+                            <span className="w-1 h-1 rounded-full bg-gray-400 dark:bg-gray-700"></span>
                             <span className="font-bold">₦{totalCost.toLocaleString()}</span>
                           </p>
                         </div>
-                        <button onClick={(e) => deleteList(e, list.id)} className="text-gray-600 hover:text-red-500 bg-[#1A1A1A] p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100 shrink-0">
+                        <button onClick={(e) => deleteList(e, list.id)} className="text-gray-400 dark:text-gray-600 hover:text-red-500 bg-gray-50 dark:bg-[#1A1A1A] p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100 shrink-0">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                       </div>
@@ -422,17 +422,17 @@ export default function GroceryListPage() {
                       <div className="mb-6 pl-4">
                         <div className="flex justify-between items-center mb-2">
                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Progress</span>
-                           <span className="text-[10px] font-bold text-gray-400">{list.items.length > 0 ? Math.round((completedCount / list.items.length) * 100) : 0}%</span>
+                           <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{list.items.length > 0 ? Math.round((completedCount / list.items.length) * 100) : 0}%</span>
                         </div>
-                        <div className="w-full bg-[#1A1A1A] h-1.5 rounded-full overflow-hidden">
-                           <div className={`h-full rounded-full transition-all duration-500 ${list.status === 'completed' ? 'bg-gray-500' : 'bg-[#1CD05D]'}`} style={{ width: `${list.items.length > 0 ? (completedCount / list.items.length) * 100 : 0}%` }}></div>
+                        <div className="w-full bg-gray-100 dark:bg-[#1A1A1A] h-1.5 rounded-full overflow-hidden">
+                           <div className={`h-full rounded-full transition-all duration-500 ${list.status === 'completed' ? 'bg-gray-400 dark:bg-gray-500' : 'bg-[#1CD05D]'}`} style={{ width: `${list.items.length > 0 ? (completedCount / list.items.length) * 100 : 0}%` }}></div>
                         </div>
                       </div>
                       
                       <div className="mt-auto">
                         <button 
                           onClick={(e) => toggleListStatus(e, list.id, list.status)}
-                          className={`w-full py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors ${list.status === 'completed' ? 'text-gray-400 bg-[#1A1A1A] hover:bg-[#2A2A2A]' : 'text-[#1CD05D] bg-[#1CD05D]/10 hover:bg-[#1CD05D] hover:text-gray-900 border border-[#1CD05D]/30'}`}
+                          className={`w-full py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors ${list.status === 'completed' ? 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-[#1A1A1A] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] border border-transparent' : 'text-[#1CD05D] bg-[#1CD05D]/10 hover:bg-[#1CD05D] hover:text-black border border-[#1CD05D]/30'}`}
                         >
                           {list.status === 'completed' ? 'Reopen List' : 'Mark as Complete'}
                         </button>
@@ -458,19 +458,19 @@ export default function GroceryListPage() {
             <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className={`text-3xl font-bold ${selectedList.status === 'completed' ? 'text-gray-500 line-through' : 'text-white'}`}>
+                  <h1 className={`text-3xl font-bold ${selectedList.status === 'completed' ? 'text-gray-500 line-through' : 'text-gray-900 dark:text-white'}`}>
                     {formatListTitle(selectedList)}
                   </h1>
                   {selectedList.status === 'completed' && (
-                    <span className="px-2 py-1 text-[10px] font-bold text-gray-400 bg-[#1A1A1A] rounded uppercase tracking-wider">Completed</span>
+                    <span className="px-2 py-1 text-[10px] font-bold text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-[#1A1A1A] rounded uppercase tracking-wider">Completed</span>
                   )}
                 </div>
-                <p className="text-gray-400 text-sm">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
                   Created on {selectedList.createdAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                 </p>
               </div>
               
-              <div className="bg-[#111111] border border-[#2A2A2A] rounded-xl p-4 min-w-48 text-right">
+              <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-xl p-4 min-w-48 text-right">
                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Estimated Total</p>
                 <p className="text-2xl font-bold text-[#1CD05D]">
                    ₦{selectedList.items.reduce((sum, item) => sum + (Number(item.estimatedCost) || 0), 0).toLocaleString()}
@@ -482,7 +482,7 @@ export default function GroceryListPage() {
             <div className="flex flex-wrap gap-3 mb-8">
               <button 
                 onClick={() => toggleListStatus(null, selectedList.id, selectedList.status)}
-                className={`px-6 py-3 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 flex-1 md:flex-none justify-center ${selectedList.status === 'completed' ? 'text-gray-300 bg-[#2A2A2A] hover:bg-[#333]' : 'text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d]'}`}
+                className={`px-6 py-3 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 flex-1 md:flex-none justify-center ${selectedList.status === 'completed' ? 'text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-[#2A2A2A] hover:bg-gray-300 dark:hover:bg-[#333]' : 'text-black dark:text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d]'}`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 {selectedList.status === 'completed' ? 'Reopen List' : 'Mark List Complete'}
@@ -491,7 +491,7 @@ export default function GroceryListPage() {
               <button 
                 onClick={handleSyncToPantry}
                 disabled={isSyncing || selectedList.items.filter(i => i.isBought).length === 0}
-                className="px-6 py-3 rounded-xl text-sm font-bold text-[#1CD05D] bg-[#13251A] hover:bg-[#1CD05D] hover:text-gray-900 transition-colors flex items-center gap-2 flex-1 md:flex-none justify-center disabled:opacity-50"
+                className="px-6 py-3 rounded-xl text-sm font-bold text-[#1CD05D] bg-green-50 dark:bg-[#13251A] hover:bg-[#1CD05D] hover:text-black dark:hover:text-gray-900 transition-colors flex items-center gap-2 flex-1 md:flex-none justify-center disabled:opacity-50"
               >
                 {isSyncing ? 'Syncing...' : 'Sync Bought Items to Pantry'}
                 {!isSyncing && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>}
@@ -499,7 +499,7 @@ export default function GroceryListPage() {
             </div>
 
             {/* Quick Add Bar */}
-            <div className="bg-[#111111] border border-[#2A2A2A] rounded-2xl p-4 mb-8 flex flex-col sm:flex-row gap-3 shadow-lg">
+            <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-4 mb-8 flex flex-col sm:flex-row gap-3 shadow-lg">
               <form onSubmit={handleAddItem} className="flex-1 flex gap-3">
                 <input 
                   type="text" 
@@ -507,12 +507,12 @@ export default function GroceryListPage() {
                   onChange={(e) => setNewItemName(e.target.value)}
                   placeholder="Add milk, eggs, paper towels..."
                   disabled={selectedList.status === 'completed'}
-                  className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-sm text-white focus:border-[#1CD05D] outline-none transition-colors disabled:opacity-50"
+                  className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:border-[#1CD05D] outline-none transition-colors disabled:opacity-50"
                 />
                 <button 
                   type="submit"
                   disabled={isAddingItem || !newItemName.trim() || selectedList.status === 'completed'}
-                  className="bg-[#1CD05D] text-gray-900 px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#15b04d] transition-all disabled:opacity-50 shrink-0"
+                  className="bg-[#1CD05D] text-black dark:text-gray-900 px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#15b04d] transition-all disabled:opacity-50 shrink-0"
                 >
                   Add Item
                 </button>
@@ -525,30 +525,30 @@ export default function GroceryListPage() {
               {/* Active Items */}
               <div>
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  To Buy <span className="bg-[#1A1A1A] text-gray-400 px-2 py-0.5 rounded-full">{selectedList.items.filter(i => !i.isBought).length}</span>
+                  To Buy <span className="bg-gray-200 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-full">{selectedList.items.filter(i => !i.isBought).length}</span>
                 </h3>
                 
                 {selectedList.items.filter(i => !i.isBought).length === 0 ? (
-                  <div className="border border-dashed border-[#2A2A2A] rounded-2xl p-8 text-center bg-[#111111]/50">
+                  <div className="border border-dashed border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-8 text-center bg-gray-50 dark:bg-[#111111]/50">
                     <p className="text-gray-500 text-sm font-medium">No items left to buy! You&apos;re all set.</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {selectedList.items.filter(i => !i.isBought).map(item => (
-                      <div key={item.name} className="group bg-[#111111] border border-[#2A2A2A] hover:border-[#1CD05D]/50 rounded-xl p-4 flex items-center justify-between transition-colors">
+                      <div key={item.name} className="group bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#1CD05D]/50 rounded-xl p-4 flex items-center justify-between transition-colors">
                         <div className="flex items-center gap-4 cursor-pointer" onClick={() => toggleItemStatus(item.name)}>
                           {/* Aesthetic Checkbox derived from vibes */}
-                          <div className="w-5 h-5 rounded border-2 border-gray-600 flex items-center justify-center group-hover:border-[#1CD05D] transition-colors"></div>
-                          <span className="font-bold text-white text-sm select-none">{item.name}</span>
+                          <div className="w-5 h-5 rounded border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center group-hover:border-[#1CD05D] transition-colors"></div>
+                          <span className="font-bold text-gray-900 dark:text-white text-sm select-none">{item.name}</span>
                         </div>
                         
                         <div className="flex items-center gap-4">
                           {item.estimatedCost > 0 ? (
-                             <span className="text-xs font-bold text-gray-400">₦{item.estimatedCost.toLocaleString()}</span>
+                             <span className="text-xs font-bold text-gray-500 dark:text-gray-400">₦{item.estimatedCost.toLocaleString()}</span>
                           ) : (
-                             <span className="text-xs font-bold text-gray-600">Price TBD</span>
+                             <span className="text-xs font-bold text-gray-400 dark:text-gray-600">Price TBD</span>
                           )}
-                          <button onClick={() => handleDeleteItem(item.name)} className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-[#1A1A1A] rounded">
+                          <button onClick={() => handleDeleteItem(item.name)} className="text-gray-400 dark:text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-gray-100 dark:bg-[#1A1A1A] rounded">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
                         </div>
@@ -560,29 +560,29 @@ export default function GroceryListPage() {
 
               {/* Completed Items */}
               {selectedList.items.filter(i => i.isBought).length > 0 && (
-                <div className="pt-6 border-t border-[#2A2A2A]">
+                <div className="pt-6 border-t border-gray-200 dark:border-[#2A2A2A]">
                   <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    In Cart <span className="bg-[#1A1A1A] text-[#1CD05D] px-2 py-0.5 rounded-full">{selectedList.items.filter(i => i.isBought).length}</span>
+                    In Cart <span className="bg-green-50 dark:bg-[#1A1A1A] text-[#1CD05D] px-2 py-0.5 rounded-full">{selectedList.items.filter(i => i.isBought).length}</span>
                   </h3>
 
                   <div className="space-y-2 opacity-60">
                     {selectedList.items.filter(i => i.isBought).map(item => (
-                      <div key={item.name} className="group bg-[#111111] border border-[#2A2A2A] rounded-xl p-4 flex items-center justify-between transition-colors">
+                      <div key={item.name} className="group bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-xl p-4 flex items-center justify-between transition-colors">
                         <div className="flex items-center gap-4 cursor-pointer" onClick={() => toggleItemStatus(item.name)}>
                           {/* Aesthetic Checked state */}
                           <div className="w-5 h-5 rounded border-2 border-[#1CD05D] bg-[#1CD05D] flex items-center justify-center transition-colors">
-                            <svg className="w-3 h-3 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" /></svg>
+                            <svg className="w-3 h-3 text-black dark:text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" /></svg>
                           </div>
-                          <span className="font-bold text-gray-400 text-sm line-through decoration-gray-500 select-none">{item.name}</span>
+                          <span className="font-bold text-gray-500 dark:text-gray-400 text-sm line-through decoration-gray-400 dark:decoration-gray-500 select-none">{item.name}</span>
                         </div>
                         
                         <div className="flex items-center gap-4">
                           {item.estimatedCost > 0 ? (
-                             <span className="text-xs font-bold text-gray-600 line-through">₦{item.estimatedCost.toLocaleString()}</span>
+                             <span className="text-xs font-bold text-gray-400 dark:text-gray-600 line-through">₦{item.estimatedCost.toLocaleString()}</span>
                           ) : (
-                             <span className="text-xs font-bold text-gray-600 line-through">Price TBD</span>
+                             <span className="text-xs font-bold text-gray-400 dark:text-gray-600 line-through">Price TBD</span>
                           )}
-                          <button onClick={() => handleDeleteItem(item.name)} className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-[#1A1A1A] rounded">
+                          <button onClick={() => handleDeleteItem(item.name)} className="text-gray-400 dark:text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-gray-100 dark:bg-[#1A1A1A] rounded">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
                         </div>

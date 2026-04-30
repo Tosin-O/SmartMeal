@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { doc, getDoc, collection, getDocs, addDoc, query, orderBy, limit, serverTimestamp } from 'firebase/firestore'; 
 import { db, auth } from '@/lib/firebase';
 import { distributeMeals, WeekPlan, MissingIngredient } from '@/lib/scheduler';
@@ -517,19 +518,19 @@ export default function MealPlanner() {
   
   if (isFetchingUser) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-[#1CD05D] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white pb-20 lg:pb-8 relative">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-900 dark:text-white pb-20 lg:pb-8 relative transition-colors duration-300">
       
       {/* --- CUSTOM TOAST NOTIFICATION --- */}
       {toast && (
         <div className={`fixed top-6 right-6 z-100 px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-5 fade-in duration-300 ${
-          toast.type === 'success' ? 'bg-[#13251A] border border-[#1CD05D] text-[#1CD05D]' : 'bg-red-950 border border-red-500 text-red-400'
+          toast.type === 'success' ? 'bg-green-50 dark:bg-[#13251A] border border-[#1CD05D] text-[#15b04d] dark:text-[#1CD05D]' : 'bg-red-50 dark:bg-red-950 border border-red-500 text-red-600 dark:text-red-400'
         }`}>
           {toast.type === 'success' ? (
             <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -549,9 +550,14 @@ export default function MealPlanner() {
         {step === 1 && (
           <div className="space-y-6 mt-2">
             <div className="mb-8">
-              <p className="text-[#1CD05D] text-[10px] font-bold tracking-[0.15em] uppercase mb-2">Meal Planning Strategy</p>
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Setup Your Meal Plan</h1>
-              <p className="text-gray-400 text-sm max-w-xl leading-relaxed">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-[#1CD05D] text-[10px] font-bold tracking-[0.15em] uppercase">Meal Planning Strategy</p>
+                <Link href="/dashboard/meal-plan/history" className="text-xs text-[#1CD05D] hover:underline">
+                  View Previous Created Meal Plans
+                </Link>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">Setup Your Meal Plan</h1>
+              <p className="text-gray-600 dark:text-gray-400 text-sm max-w-xl leading-relaxed">
                 Define how you want to build your upcoming meal cycle. Our engine considers your budget, dietary preferences, and existing pantry stock.
               </p>
             </div>
@@ -560,7 +566,7 @@ export default function MealPlanner() {
               {/* Auto Generate Card */}
               <div 
                 onClick={() => setMode('Auto')} 
-                className={`relative overflow-hidden cursor-pointer rounded-2xl p-6 transition-all duration-300 border ${mode === 'Auto' ? 'border-[#1CD05D] bg-[#111111]' : 'border-[#2A2A2A] bg-[#111111] hover:border-gray-600'}`}
+                className={`relative overflow-hidden cursor-pointer rounded-2xl p-6 transition-all duration-300 border ${mode === 'Auto' ? 'border-[#1CD05D] bg-white dark:bg-[#111111]' : 'border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#111111] hover:border-gray-300 dark:hover:border-gray-600'}`}
               >
                 {mode === 'Auto' && (
                   <svg className="absolute bottom-4 right-4 w-32 h-32 text-[#1CD05D] opacity-[0.08] transform rotate-12 pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
@@ -569,11 +575,11 @@ export default function MealPlanner() {
                 )}
                 
                 <div className="relative z-10 flex flex-col h-full">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-colors ${mode === 'Auto' ? 'bg-[#1CD05D]/10 text-[#1CD05D]' : 'bg-[#1A1A1A] text-gray-500'}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-colors ${mode === 'Auto' ? 'bg-green-50 dark:bg-[#1CD05D]/10 text-[#1CD05D]' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400'}`}>
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5z"/></svg>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">AI Auto-Generate</h3>
-                  <p className="text-sm text-gray-400 leading-relaxed mb-8">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">AI Auto-Generate</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-8">
                     Let our algorithm optimize for your budget and pantry. We&apos;ll curate a balanced schedule of recipes that minimize waste and maximize savings.
                   </p>
                   <div className="mt-auto">
@@ -587,14 +593,14 @@ export default function MealPlanner() {
               {/* Manual Card */}
               <div 
                 onClick={() => setMode('Manual')} 
-                className={`relative overflow-hidden cursor-pointer rounded-2xl p-6 transition-all duration-300 border ${mode === 'Manual' ? 'border-[#1CD05D] bg-[#111111]' : 'border-[#2A2A2A] bg-[#111111] hover:border-gray-600'}`}
+                className={`relative overflow-hidden cursor-pointer rounded-2xl p-6 transition-all duration-300 border ${mode === 'Manual' ? 'border-[#1CD05D] bg-white dark:bg-[#111111]' : 'border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#111111] hover:border-gray-300 dark:hover:border-gray-600'}`}
               >
                 <div className="relative z-10 flex flex-col h-full">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-colors ${mode === 'Manual' ? 'bg-[#1CD05D]/10 text-[#1CD05D]' : 'bg-[#1A1A1A] text-gray-500'}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-colors ${mode === 'Manual' ? 'bg-green-50 dark:bg-[#1CD05D]/10 text-[#1CD05D]' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400'}`}>
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63l-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6C13 6.67 12.33 6 11.5 6S10 6.67 10 7.5v10.74l-3.43-.72c-.08-.01-.15-.03-.24-.03-.31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.44-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.62-.38-1.16-.91-1.38z"/></svg>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">Build Manually</h3>
-                  <p className={`text-sm leading-relaxed mb-8 ${mode === 'Manual' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Build Manually</h3>
+                  <p className={`text-sm leading-relaxed mb-8 ${mode === 'Manual' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-500'}`}>
                     Hand-pick your favorite recipes. Browse our full library and assemble your own schedule day by day with total creative control.
                   </p>
                   <div className="mt-auto">
@@ -607,21 +613,21 @@ export default function MealPlanner() {
             </div>
 
             {/* Duration Selector Bar */}
-            <div className="bg-[#111111] border border-[#2A2A2A] rounded-2xl p-6 flex items-center justify-between mt-6">
+            <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-6 flex items-center justify-between mt-6">
               <div>
-                <h3 className="text-sm font-bold text-white mb-0.5">Planning Duration</h3>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-0.5">Planning Duration</h3>
                 <p className="text-xs text-gray-500">How long of a period should this plan cover?</p>
               </div>
-              <div className="bg-[#1A1A1A] p-1 rounded-full flex border border-[#2A2A2A]">
-                <button onClick={() => setDuration('Weekly')} className={`px-6 py-2 rounded-full text-xs font-bold transition-colors ${duration === 'Weekly' ? 'bg-[#1CD05D] text-black' : 'text-gray-400 hover:text-white'}`}>Weekly</button>
-                <button onClick={() => setDuration('Monthly')} className={`px-6 py-2 rounded-full text-xs font-bold transition-colors ${duration === 'Monthly' ? 'bg-[#1CD05D] text-black' : 'text-gray-400 hover:text-white'}`}>Monthly</button>
+              <div className="bg-gray-100 dark:bg-[#1A1A1A] p-1 rounded-full flex border border-gray-200 dark:border-[#2A2A2A]">
+                <button onClick={() => setDuration('Weekly')} className={`px-6 py-2 rounded-full text-xs font-bold transition-colors ${duration === 'Weekly' ? 'bg-[#1CD05D] text-black dark:text-gray-900' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>Weekly</button>
+                <button onClick={() => setDuration('Monthly')} className={`px-6 py-2 rounded-full text-xs font-bold transition-colors ${duration === 'Monthly' ? 'bg-[#1CD05D] text-black dark:text-gray-900' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>Monthly</button>
               </div>
             </div>
 
             {/* Generate Button */}
             <div className="pt-6 flex justify-center">
-              <button onClick={handleGenerate} disabled={loading} className="w-75 py-3.5 rounded-xl font-bold text-sm text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                {loading ? <><div className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>Processing...</> : <>
+              <button onClick={handleGenerate} disabled={loading} className="w-75 py-3.5 rounded-xl font-bold text-sm text-black dark:text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                {loading ? <><div className="w-4 h-4 border-2 border-black dark:border-gray-900 border-t-transparent rounded-full animate-spin"></div>Processing...</> : <>
                   Generate Meal Plan
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2 8.6 4.5 10 7 7.5 5.6zm12 9.8l-2.5 1.4 1.4-2.5L17 11.8l2.5 1.4L22 11.8l-1.4 2.5 1.4 2.5-2.5-1.4zM22 2l-2.5 1.4L18.1 2l1.4 2.5-1.4 2.5 2.5-1.4L23.1 7l-1.4-2.5L23.1 2zM3.4 22L1.9 20.6l15.6-15.6 1.5 1.5L3.4 22z"/></svg>
                 </>}
@@ -636,7 +642,7 @@ export default function MealPlanner() {
             
             <div className="flex flex-col mb-2">
               <div className="flex justify-between items-center mb-1">
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {mode === 'Auto' ? 'Your Generated Plan' : 'Manual Plan Builder'}
                 </h2>
                 <button onClick={resetPlanner} className="text-xs font-bold text-[#1CD05D] hover:underline">
@@ -646,29 +652,29 @@ export default function MealPlanner() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl">
+              <div className="p-5 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl">
                 <div className="flex justify-between items-start mb-3">
                   <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   {totalSpent > activeTargetBudget ? (
-                    <span className="px-2 py-1 text-[10px] font-bold text-red-400 bg-red-950/30 rounded uppercase tracking-wider">Over Budget</span>
+                    <span className="px-2 py-1 text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950/30 rounded uppercase tracking-wider">Over Budget</span>
                   ) : (
-                    <span className="px-2 py-1 text-[10px] font-bold text-[#1CD05D] bg-[#13251A] rounded uppercase tracking-wider">On Budget</span>
+                    <span className="px-2 py-1 text-[10px] font-bold text-green-700 dark:text-[#1CD05D] bg-green-100 dark:bg-[#13251A] rounded uppercase tracking-wider">On Budget</span>
                   )}
                 </div>
                 <div className="flex items-end gap-2">
-                  <p className="text-2xl font-bold text-white">₦{totalSpent.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">₦{totalSpent.toLocaleString()}</p>
                   <p className="text-sm text-gray-500 mb-1">/ ₦{activeTargetBudget.toLocaleString()}</p>
                 </div>
-                <div className="w-full h-1.5 mt-3 bg-[#2A2A2A] rounded-full overflow-hidden">
+                <div className="w-full h-1.5 mt-3 bg-gray-200 dark:bg-[#2A2A2A] rounded-full overflow-hidden">
                   <div className={`h-full rounded-full ${totalSpent > activeTargetBudget ? 'bg-red-500' : 'bg-[#1CD05D]'}`} style={{ width: `${Math.min((totalSpent / activeTargetBudget) * 100, 100)}%` }}></div>
                 </div>
               </div>
               
               {/* Date Card */}
               {planStartDate && planEndDate && (
-                <div className="p-5 bg-[#111111] border border-[#2A2A2A] rounded-2xl flex flex-col justify-center">
+                <div className="p-5 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl flex flex-col justify-center">
                   <svg className="w-6 h-6 text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  <p className="text-xl font-bold text-white mb-1">
+                  <p className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                     {planStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {planEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </p>
                   <p className="text-xs font-bold tracking-widest text-gray-500 uppercase">{duration} Cycle</p>
@@ -685,8 +691,8 @@ export default function MealPlanner() {
                     onClick={() => setCurrentWeek(w)}
                     className={`px-6 py-2 rounded-xl text-xs font-bold transition-all duration-300 whitespace-nowrap ${
                       currentWeek === w 
-                        ? 'bg-[#1CD05D] text-gray-900' 
-                        : 'bg-[#111111] text-gray-400 border border-[#2A2A2A] hover:border-gray-500 hover:text-white'
+                        ? 'bg-[#1CD05D] text-black dark:text-gray-900' 
+                        : 'bg-white dark:bg-[#111111] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-[#2A2A2A] hover:border-gray-300 dark:hover:border-gray-500 hover:text-gray-900 dark:hover:text-white'
                     }`}
                   >
                     Week {w}
@@ -700,8 +706,8 @@ export default function MealPlanner() {
               {daysOfWeek.map(day => {
                 const dayData = generatedPlan[currentWeek][day];
                 return (
-                  <div key={day} className="bg-[#111111] rounded-2xl border border-[#2A2A2A] flex flex-col">
-                    <div className="text-center py-2.5 border-b border-[#2A2A2A]">
+                  <div key={day} className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#2A2A2A] flex flex-col">
+                    <div className="text-center py-2.5 border-b border-gray-200 dark:border-[#2A2A2A]">
                       <span className="text-[#1CD05D] text-xs font-bold uppercase tracking-widest">{day}</span>
                     </div>
                     <div className="p-3 space-y-3 grow flex flex-col">
@@ -717,28 +723,28 @@ export default function MealPlanner() {
                           <div key={type} className="flex-1 flex flex-col">
                             <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">{type}</span>
                             {meal ? (
-                              <div className="bg-[#1A1A1A] p-3 rounded-xl border border-[#2A2A2A] group relative flex flex-col justify-center min-h-17.5">
+                              <div className="bg-gray-50 dark:bg-[#1A1A1A] p-3 rounded-xl border border-gray-200 dark:border-[#2A2A2A] group relative flex flex-col justify-center min-h-17.5">
                                 {/* Delete Hover Button */}
-                                <button onClick={() => handleRemoveMeal(day, type)} className="absolute -top-2 -right-2 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all bg-[#111111] border border-[#2A2A2A] rounded-full p-1 z-20 shadow-lg">
+                                <button onClick={() => handleRemoveMeal(day, type)} className="absolute -top-2 -right-2 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-full p-1 z-20 shadow-lg">
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                                 
                                 <div onClick={() => openModal(day, type)} className="cursor-pointer relative group/tooltip w-full h-full flex flex-col justify-between">
-                                  <p className="font-bold text-white text-sm truncate mb-1 pr-1">{displayName}</p>
+                                  <p className="font-bold text-gray-900 dark:text-white text-sm truncate mb-1 pr-1">{displayName}</p>
                                   
-                                  <div className="absolute z-50 left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover/tooltip:block w-max max-w-55 bg-[#1CD05D] text-gray-900 text-xs font-bold py-1.5 px-3 rounded shadow-xl whitespace-normal text-center pointer-events-none">
+                                  <div className="absolute z-50 left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover/tooltip:block w-max max-w-55 bg-[#1CD05D] text-black dark:text-gray-900 text-xs font-bold py-1.5 px-3 rounded shadow-xl whitespace-normal text-center pointer-events-none">
                                     {displayName}
                                     <div className="absolute top-full left-1/2 w-2 h-2 bg-[#1CD05D] transform -translate-x-1/2 -translate-y-1/2 rotate-45"></div>
                                   </div>
 
                                   <p className="text-[10px] font-bold text-gray-500 flex items-center justify-between">
-                                    <span className={`${mealData?.source === 'Recipe' ? 'text-[#1CD05D]' : 'text-blue-400'} uppercase tracking-wider`}>{mealData?.source}</span>
+                                    <span className={`${mealData?.source === 'Recipe' ? 'text-[#1CD05D]' : 'text-blue-500 dark:text-blue-400'} uppercase tracking-wider`}>{mealData?.source}</span>
                                     <span>₦{mealData?.cost}</span>
                                   </p>
                                 </div>
                               </div>
                             ) : (
-                              <div onClick={() => openModal(day, type)} className="border border-dashed border-[#2A2A2A] rounded-xl flex items-center justify-center min-h-17.5 hover:border-[#1CD05D] hover:bg-[#1CD05D]/5 cursor-pointer transition-colors group">
+                              <div onClick={() => openModal(day, type)} className="border border-dashed border-gray-300 dark:border-[#2A2A2A] rounded-xl flex items-center justify-center min-h-17.5 hover:border-[#1CD05D] hover:bg-green-50 dark:hover:bg-[#1CD05D]/5 cursor-pointer transition-colors group">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 group-hover:text-[#1CD05D] flex items-center gap-1">
                                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg> Add
                                 </span>
@@ -758,29 +764,29 @@ export default function MealPlanner() {
             <div className="mt-8 flex flex-col md:flex-row gap-6">
               
               {/* Left Side: Grocery Items */}
-              <div className="flex-1 bg-[#111111] border border-[#2A2A2A] p-6 rounded-2xl">
+              <div className="flex-1 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] p-6 rounded-2xl">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center text-[#1CD05D]">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-[#1A1A1A] flex items-center justify-center text-[#1CD05D]">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">Grocery Needs</h2>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Grocery Needs</h2>
                     <p className="text-gray-500 text-xs">Ingredients required for your scheduled recipes.</p>
                   </div>
                 </div>
 
                 {shoppingList.length === 0 ? (
-                  <div className="p-8 border border-dashed border-[#2A2A2A] rounded-xl text-center">
-                    <p className="text-gray-400 text-sm font-bold">No ingredients required</p>
-                    <p className="text-gray-600 text-xs mt-1">Your pantry covers it, or you&apos;re eating at the cafe.</p>
+                  <div className="p-8 border border-dashed border-gray-300 dark:border-[#2A2A2A] rounded-xl text-center">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm font-bold">No ingredients required</p>
+                    <p className="text-gray-500 dark:text-gray-600 text-xs mt-1">Your pantry covers it, or you&apos;re eating at the cafe.</p>
                   </div>
                 ) : (
                   <ul className="flex flex-col gap-2 max-h-75 overflow-y-auto pr-2 scrollbar-thin">
                     {shoppingList.map((item, idx) => (
-                      <li key={idx} className="bg-[#1A1A1A] px-4 py-3 rounded-xl flex justify-between items-center border border-[#2A2A2A]">
+                      <li key={idx} className="bg-gray-50 dark:bg-[#1A1A1A] px-4 py-3 rounded-xl flex justify-between items-center border border-gray-200 dark:border-[#2A2A2A]">
                         <div className="flex items-center gap-3">
                           <div className="w-2 h-2 rounded-full bg-[#1CD05D] shrink-0"></div>
-                          <span className="font-bold text-white text-sm truncate">{item.name}</span>
+                          <span className="font-bold text-gray-900 dark:text-white text-sm truncate">{item.name}</span>
                         </div>
                         <span className="text-[#1CD05D] font-bold text-sm shrink-0">
                           {item.estimatedCost > 0 ? `₦${item.estimatedCost.toLocaleString()}` : <span className="text-gray-500 text-xs">Price TBD</span>}
@@ -792,15 +798,15 @@ export default function MealPlanner() {
               </div>
 
               {/* Right Side: Action Card */}
-              <div className="md:w-72 bg-[#111111] border border-[#2A2A2A] p-6 rounded-2xl flex flex-col justify-center items-center text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-linear-to-t from-[#1CD05D]/5 to-transparent"></div>
+              <div className="md:w-72 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] p-6 rounded-2xl flex flex-col justify-center items-center text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-linear-to-t from-green-50 dark:from-[#1CD05D]/5 to-transparent"></div>
                 <div className="relative z-10 w-full">
-                  <h3 className="text-lg font-bold text-white mb-2">Ready to commit?</h3>
-                  <p className="text-xs text-gray-400 mb-6">Saving this plan will sync it to your dashboard and finalize your grocery list.</p>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Ready to commit?</h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-6">Saving this plan will sync it to your dashboard and finalize your grocery list.</p>
                   <button 
                     onClick={handleSavePlan}
                     disabled={isSaving}
-                    className="w-full bg-[#1CD05D] text-gray-900 px-6 py-3.5 rounded-xl text-sm font-bold hover:bg-[#15b04d] transition-all duration-300 disabled:opacity-50"
+                    className="w-full bg-[#1CD05D] text-black dark:text-gray-900 px-6 py-3.5 rounded-xl text-sm font-bold hover:bg-[#15b04d] transition-all duration-300 disabled:opacity-50"
                   >
                     {isSaving ? 'Saving...' : 'Save Plan to Dashboard'}
                   </button>
@@ -815,26 +821,26 @@ export default function MealPlanner() {
 
       {/* --- ADD MEAL MODAL --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-[#111111] border border-[#2A2A2A] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200">
-            <div className="p-5 border-b border-[#2A2A2A] flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-gray-200 dark:border-[#2A2A2A] flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-white mb-0.5">Select a Meal</h2>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-0.5">Select a Meal</h2>
                 <p className="text-[10px] font-bold tracking-widest text-[#1CD05D] uppercase">Week {currentWeek} • {activeDay} {activeMealType}</p>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 text-gray-400 hover:text-white bg-[#1A1A1A] rounded-full">
+              <button onClick={() => setIsModalOpen(false)} className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-[#1A1A1A] rounded-full">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             
-            <div className="p-4 border-b border-[#2A2A2A] bg-[#1A1A1A]/50 relative">
+            <div className="p-4 border-b border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#1A1A1A]/50 relative">
                <div className="absolute inset-y-0 left-0 flex items-center pl-7 pointer-events-none text-gray-500">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
-              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search recipes or cafeteria meals..." className="w-full py-3 pl-10 pr-4 bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl text-white text-sm focus:border-[#1CD05D] outline-none" />
+              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search recipes or cafeteria meals..." className="w-full py-3 pl-10 pr-4 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#2A2A2A] rounded-xl text-gray-900 dark:text-white text-sm focus:border-[#1CD05D] outline-none" />
             </div>
 
-            <div className="overflow-y-auto p-4 flex-1 bg-[#0A0A0A]">
+            <div className="overflow-y-auto p-4 flex-1 bg-gray-50 dark:bg-[#0A0A0A]">
               {isSearchingDB ? (
                 <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#1CD05D] border-t-transparent rounded-full animate-spin"></div></div>
               ) : filteredMeals.length === 0 ? (
@@ -842,19 +848,19 @@ export default function MealPlanner() {
               ) : (
                 <div className="space-y-2">
                   {filteredMeals.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-[#111111] border border-[#2A2A2A] rounded-xl hover:border-gray-500 transition-colors">
+                    <div key={item.id} className="flex items-center justify-between p-3 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-xl hover:border-gray-300 dark:hover:border-gray-500 transition-colors">
                       <div className="flex items-center gap-3 overflow-hidden">
                         {item.image ? (
                           <div className="w-12 h-12 rounded-lg overflow-hidden relative shrink-0"><Image src={item.image} alt={item.title} fill className="object-cover" /></div>
                         ) : (
-                          <div className="w-12 h-12 rounded-lg bg-[#1A1A1A] flex items-center justify-center text-gray-600 shrink-0"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
+                          <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] flex items-center justify-center text-gray-500 dark:text-gray-600 shrink-0"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
                         )}
                         <div className="min-w-0">
-                          <p className="font-bold text-white text-sm truncate" title={item.title}>{item.title}</p>
+                          <p className="font-bold text-gray-900 dark:text-white text-sm truncate" title={item.title}>{item.title}</p>
                           <p className="text-[10px] uppercase font-bold text-gray-500 mt-0.5">{item.source} • ₦{item.cost}</p>
                         </div>
                       </div>
-                      <button onClick={() => handleSelectMeal(item)} className="ml-3 px-4 py-2 text-xs font-bold text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] rounded-lg shrink-0">Add</button>
+                      <button onClick={() => handleSelectMeal(item)} className="ml-3 px-4 py-2 text-xs font-bold text-black dark:text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] rounded-lg shrink-0">Add</button>
                     </div>
                   ))}
                 </div>

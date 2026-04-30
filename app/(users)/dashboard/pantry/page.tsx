@@ -223,27 +223,27 @@ export default function PantryStockPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-[#1CD05D] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white pb-20 lg:pb-8 relative">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-900 dark:text-white pb-20 lg:pb-8 relative transition-colors duration-300">
       
       {/* --- DEDUCTION MODAL --- */}
       {deductItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-[#111111] border border-[#2A2A2A] rounded-2xl p-6 md:p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-6 md:p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-start mb-2">
-               <h2 className="text-xl font-bold text-white">Use Ingredient</h2>
-               <button onClick={() => setDeductItem(null)} className="text-gray-500 hover:text-white">
+               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Use Ingredient</h2>
+               <button onClick={() => setDeductItem(null)} className="text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                </button>
             </div>
-            <p className="text-sm text-gray-400 mb-6">
-              How much <strong className="text-white">{deductItem.name}</strong> did you use? <br/>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              How much <strong className="text-gray-900 dark:text-white">{deductItem.name}</strong> did you use? <br/>
               <span className="text-xs text-[#1CD05D]">Current stock: {getDisplayQuantity(deductItem)}</span>
             </p>
             
@@ -256,7 +256,7 @@ export default function PantryStockPage() {
                   value={deductAmount}
                   onChange={(e) => setDeductAmount(e.target.value)}
                   placeholder="Amount"
-                  className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl pl-4 pr-16 py-3 text-sm text-white focus:border-yellow-500 outline-none transition-colors"
+                  className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-xl pl-4 pr-16 py-3 text-sm text-gray-900 dark:text-white focus:border-yellow-500 outline-none transition-colors"
                   autoFocus
                   required
                 />
@@ -283,19 +283,19 @@ export default function PantryStockPage() {
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <p className="text-[#1CD05D] text-[10px] font-bold tracking-[0.15em] uppercase mb-2">Inventory Hub</p>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Your Pantry Stock</h1>
-            <p className="text-gray-400 text-sm max-w-md leading-relaxed">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">Your Pantry Stock</h1>
+            <p className="text-gray-600 dark:text-gray-400 text-sm max-w-md leading-relaxed">
               Log the ingredients you already have so the AI can build cheaper meal plans around your existing stock.
             </p>
           </div>
 
           {/* Quick Stats */}
           <div className="flex gap-4">
-             <div className="bg-[#111111] border border-[#2A2A2A] rounded-xl p-4 min-w-30">
+             <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-xl p-4 min-w-30">
                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Total Items</p>
-                <p className="text-2xl font-bold text-white">{items.length}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{items.length}</p>
              </div>
-             <div className="bg-[#111111] border border-[#2A2A2A] rounded-xl p-4 min-w-30">
+             <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-xl p-4 min-w-30">
                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Categories</p>
                 <p className="text-2xl font-bold text-[#1CD05D]">{Object.keys(groupedItems).length}</p>
              </div>
@@ -303,28 +303,28 @@ export default function PantryStockPage() {
         </div>
 
         {/* Quick Add Form */}
-        <section className="mb-12 bg-[#111111] border border-[#2A2A2A] rounded-2xl p-6 shadow-lg shadow-[#1CD05D]/5">
+        <section className="mb-12 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-6 shadow-lg shadow-[#1CD05D]/5">
           <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
             
             <div className="md:col-span-4">
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Ingredient Name</label>
+              <label className="block text-xs font-bold text-gray-600 dark:text-gray-500 uppercase mb-2 ml-1">Ingredient Name</label>
               <input 
                 type="text" 
                 value={newItemName}
                 onChange={(e) => setNewItemName(e.target.value)}
                 placeholder="e.g. Rice, Tomatoes, Chicken..."
-                className="w-full p-3.5 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl text-white focus:border-[#1CD05D] outline-none transition-colors"
+                className="w-full p-3.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-xl text-gray-900 dark:text-white focus:border-[#1CD05D] outline-none transition-colors"
                 required
               />
             </div>
             
             <div className="md:col-span-3">
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Category</label>
+              <label className="block text-xs font-bold text-gray-600 dark:text-gray-500 uppercase mb-2 ml-1">Category</label>
               <div className="relative">
                 <select 
                   value={newItemCategory}
                   onChange={(e) => setNewItemCategory(e.target.value)}
-                  className="w-full p-3.5 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl text-white focus:border-[#1CD05D] outline-none appearance-none transition-colors"
+                  className="w-full p-3.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-xl text-gray-900 dark:text-white focus:border-[#1CD05D] outline-none appearance-none transition-colors"
                 >
                   {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
@@ -334,23 +334,23 @@ export default function PantryStockPage() {
 
             <div className="grid grid-cols-2 gap-4 md:col-span-3">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Amount</label>
+                <label className="block text-xs font-bold text-gray-600 dark:text-gray-500 uppercase mb-2 ml-1">Amount</label>
                 <input 
                   type="number" 
                   step="0.01"
                   min="0.01"
                   value={newItemAmount}
                   onChange={(e) => setNewItemAmount(e.target.value)}
-                  className="w-full p-3.5 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl text-white focus:border-[#1CD05D] outline-none transition-colors"
+                  className="w-full p-3.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-xl text-gray-900 dark:text-white focus:border-[#1CD05D] outline-none transition-colors"
                   required
                 />
               </div>
               <div className="relative">
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Unit</label>
+                <label className="block text-xs font-bold text-gray-600 dark:text-gray-500 uppercase mb-2 ml-1">Unit</label>
                 <select 
                   value={newItemUnit}
                   onChange={(e) => setNewItemUnit(e.target.value)}
-                  className="w-full p-3.5 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl text-white focus:border-[#1CD05D] outline-none appearance-none transition-colors"
+                  className="w-full p-3.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-xl text-gray-900 dark:text-white focus:border-[#1CD05D] outline-none appearance-none transition-colors"
                 >
                   {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
@@ -362,7 +362,7 @@ export default function PantryStockPage() {
               <button 
                 type="submit"
                 disabled={isAdding || !newItemName.trim()}
-                className="w-full py-3.5 text-sm font-bold text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3.5 text-sm font-bold text-black dark:text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isAdding ? <div className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div> : (
                   <>
@@ -378,11 +378,11 @@ export default function PantryStockPage() {
 
         {/* Pantry List by Category */}
         {items.length === 0 ? (
-          <div className="p-12 border border-dashed border-[#2A2A2A] rounded-2xl flex flex-col items-center justify-center text-center bg-[#111111]/30">
-            <div className="w-16 h-16 bg-[#1A1A1A] rounded-full flex items-center justify-center mx-auto mb-4 text-[#1CD05D]">
+          <div className="p-12 border border-dashed border-gray-300 dark:border-[#2A2A2A] rounded-2xl flex flex-col items-center justify-center text-center bg-gray-50/50 dark:bg-[#111111]/30">
+            <div className="w-16 h-16 bg-green-50 dark:bg-[#1A1A1A] rounded-full flex items-center justify-center mx-auto mb-4 text-[#1CD05D]">
                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
             </div>
-            <p className="text-xl font-bold text-white mb-2">Your pantry is empty</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">Your pantry is empty</p>
             <p className="text-gray-500 max-w-sm">Use the quick add bar above to log ingredients you already have in your hostel or home.</p>
           </div>
         ) : (
@@ -393,21 +393,21 @@ export default function PantryStockPage() {
 
               return (
                 <div key={category} className="animate-in fade-in duration-500">
-                  <div className="flex items-center gap-3 mb-6 pb-2 border-b border-[#2A2A2A]">
-                    <h2 className="text-lg font-bold text-white">{category}</h2>
-                    <span className="px-2.5 py-0.5 text-xs font-bold bg-[#1A1A1A] text-[#1CD05D] rounded-full border border-[#2A2A2A]">
+                  <div className="flex items-center gap-3 mb-6 pb-2 border-b border-gray-200 dark:border-[#2A2A2A]">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">{category}</h2>
+                    <span className="px-2.5 py-0.5 text-xs font-bold bg-green-50 dark:bg-[#1A1A1A] text-[#1CD05D] rounded-full border border-green-100 dark:border-[#2A2A2A]">
                       {categoryItems.length}
                     </span>
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {categoryItems.map((item) => (
-                      <div key={item.id} className="group bg-[#111111] border border-[#2A2A2A] hover:border-[#1CD05D]/50 transition-colors rounded-xl p-4 flex items-center justify-between shadow-lg">
+                      <div key={item.id} className="group bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#1CD05D]/50 transition-colors rounded-xl p-4 flex items-center justify-between shadow-lg">
                         <div className="flex items-center gap-3 overflow-hidden">
                            {/* Aesthetic glowing dot indicator */}
-                           <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-[#1A1A1A] group-hover:bg-[#1CD05D] group-hover:shadow-[0_0_8px_rgba(28,208,93,0.5)] transition-all"></div>
+                           <div className="w-2.5 h-2.5 shrink-0 rounded-full bg-gray-200 dark:bg-[#1A1A1A] group-hover:bg-[#1CD05D] group-hover:shadow-[0_0_8px_rgba(28,208,93,0.5)] transition-all"></div>
                            <div className="min-w-0">
-                             <p className="font-bold text-white text-sm truncate">{item.name}</p>
+                             <p className="font-bold text-gray-900 dark:text-white text-sm truncate">{item.name}</p>
                              <p className="text-xs font-bold text-gray-500 mt-0.5 tracking-wider uppercase">
                                {getDisplayQuantity(item)}
                              </p>
@@ -419,7 +419,7 @@ export default function PantryStockPage() {
                           {/* Deduct Button */}
                           <button 
                             onClick={() => setDeductItem(item)}
-                            className="p-1.5 text-gray-500 hover:text-yellow-500 bg-[#1A1A1A] rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-yellow-500 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
                             title="Use some of this item"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
@@ -428,7 +428,7 @@ export default function PantryStockPage() {
                           {/* Delete Button */}
                           <button 
                             onClick={() => handleDeleteItem(item.id)}
-                            className="p-1.5 text-gray-500 hover:text-red-500 bg-[#1A1A1A] rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
                             title="Delete completely"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
