@@ -7,7 +7,6 @@ if (!admin.apps.length) {
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        // The regex replaces literal \n with actual line breaks required by the encryption
         privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       }),
     });
@@ -17,3 +16,21 @@ if (!admin.apps.length) {
 }
 
 export const adminDb = admin.firestore();
+export const adminAuth = admin.auth();
+
+/**
+ * Function to assign admin privileges
+ */
+export const setAdminClaim = async (uid: string) => {
+  try {
+    await admin.auth().setCustomUserClaims(uid, { admin: true });
+    console.log(`Successfully assigned admin claim to user: ${uid}`);
+  } catch (error) {
+    console.error('Error setting custom claims:', error);
+  }
+};
+
+// --- ONE-TIME EXECUTION FOR YOUR SPECIFIC UID ---
+// You can remove this block after you run the script once.
+const TARGET_UID = 'viDKGHZXBRSvaSr5aUVMTpQ9Dcv2';
+setAdminClaim(TARGET_UID);
