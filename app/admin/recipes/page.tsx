@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import Image from 'next/image';
 
 // TypeScript Interfaces
 interface RecipeIngredient {
@@ -23,7 +22,6 @@ interface Recipe {
   estimatedCost?: number;
   tags?: string[];
   status?: 'LIVE' | 'DRAFT';
-  image?: string;
 }
 
 interface MarketIngredient {
@@ -77,7 +75,6 @@ export default function RecipeManagement() {
           estimatedCost: recipeCost,
           tags: data.tags || [],
           status: data.status || 'DRAFT',
-          image: data.image || '/jollof.jpg', 
         });
       });
 
@@ -112,7 +109,7 @@ export default function RecipeManagement() {
   const openCreateDrawer = () => {
     setFormData({
       title: '', description: '', category: 'Lunch', prepTime: '', estimatedCost: 0, 
-      tags: [], status: 'DRAFT', image: '', instructions: [''], ingredientsNeeded: []
+      tags: [], status: 'DRAFT', instructions: [''], ingredientsNeeded: []
     });
     setDrawerMode('create');
     setIsDrawerOpen(true);
@@ -208,7 +205,6 @@ export default function RecipeManagement() {
   // --- Helper to get ingredient name by ID ---
   const getIngredientName = (id: string) => {
     const ing = marketIngredients.find(i => i.id === id);
-    // Updated to show the missing ID so you know what to add to your database!
     return ing ? ing.name : `Missing (${id})`;
   };
 
@@ -297,33 +293,31 @@ export default function RecipeManagement() {
                 <div 
                   key={recipe.id} 
                   onClick={() => openViewDrawer(recipe)}
-                  className="bg-[#111111] border border-[#2A2A2A] rounded-2xl overflow-hidden group cursor-pointer hover:border-gray-500 transition-colors flex flex-col"
+                  className="bg-[#111111] border border-[#2A2A2A] rounded-2xl p-5 group cursor-pointer hover:border-gray-500 transition-colors flex flex-col"
                 >
-                  <div className="relative h-48 w-full bg-[#1A1A1A] shrink-0">
-                    <Image src={recipe.image || '/jollof.jpg'} alt={recipe.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-linear-to-t from-[#111111] via-transparent to-transparent opacity-80"></div>
-                    <div className="absolute top-4 right-4 flex gap-2">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex gap-2">
                       {recipe.status === 'LIVE' ? (
                         <span className="px-3 py-1 text-[10px] font-bold text-gray-900 bg-[#1CD05D] rounded-full uppercase shadow-lg shadow-black/50">LIVE: ₦{recipe.estimatedCost?.toLocaleString()}</span>
                       ) : (
                         <span className="px-3 py-1 text-[10px] font-bold text-white bg-gray-600 rounded-full uppercase shadow-lg shadow-black/50">DRAFT</span>
                       )}
                     </div>
-                    <div className="absolute bottom-4 left-4 flex items-center gap-1.5 text-xs font-semibold text-white bg-black/50 backdrop-blur-sm px-2 py-1 rounded-md">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       {recipe.prepTime}
                     </div>
                   </div>
-                  <div className="p-5 flex-1 flex flex-col">
-                    <h3 className="text-lg font-bold text-white mb-1 truncate">{recipe.title}</h3>
-                    <div className="flex gap-2 text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-6 overflow-hidden">
-                      {recipe.tags?.slice(0, 3).map((tag, idx) => (
-                        <span key={idx} className="whitespace-nowrap">{tag}{idx < (recipe.tags?.length || 0) - 1 ? ' • ' : ''}</span>
-                      ))}
-                    </div>
-                    <div className="mt-auto pt-4 border-t border-[#2A2A2A] text-sm text-gray-400 font-medium">
-                      {recipe.ingredientsNeeded.length} Ingredients Required
-                    </div>
+                  
+                  <h3 className="text-lg font-bold text-white mb-1 truncate">{recipe.title}</h3>
+                  <div className="flex gap-2 text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-6 overflow-hidden">
+                    {recipe.tags?.slice(0, 3).map((tag, idx) => (
+                      <span key={idx} className="whitespace-nowrap">{tag}{idx < (recipe.tags?.length || 0) - 1 ? ' • ' : ''}</span>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-auto pt-4 border-t border-[#2A2A2A] text-sm text-gray-400 font-medium">
+                    {recipe.ingredientsNeeded.length} Ingredients Required
                   </div>
                 </div>
               ))
@@ -487,14 +481,6 @@ export default function RecipeManagement() {
                 <input type="text" value={formData.tags?.join(', ')} onChange={e => setFormData({...formData, tags: e.target.value.split(',').map(t => t.trim())})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none" placeholder="e.g. VEGAN, SPICY, KETO" />
               )}
             </div>
-            
-            {drawerMode !== 'view' && (
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Image URL</label>
-                <input type="text" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none" placeholder="/image.jpg or https://..." />
-                <p className="text-[10px] text-gray-500 mt-1">Ensure image exists in public folder or provide a full URL.</p>
-              </div>
-            )}
           </div>
 
           {/* Ingredients Needed */}
