@@ -422,14 +422,14 @@ export default function RecipeManagement() {
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Recipe Title</label>
               {drawerMode === 'view' ? <p className="text-white text-lg font-bold">{formData.title}</p> : (
-                <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none" placeholder="e.g. Party Jollof Rice" />
+                <input type="text" value={formData.title || ''} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none" placeholder="e.g. Party Jollof Rice" />
               )}
             </div>
 
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Description</label>
               {drawerMode === 'view' ? <p className="text-gray-300">{formData.description}</p> : (
-                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none min-h-25" placeholder="Brief overview of the dish..." />
+                <textarea value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none min-h-25" placeholder="Brief overview of the dish..." />
               )}
             </div>
 
@@ -437,7 +437,7 @@ export default function RecipeManagement() {
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Category</label>
                 {drawerMode === 'view' ? <p className="text-white">{formData.category}</p> : (
-                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none">
+                  <select value={formData.category || 'Lunch'} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none">
                     <option value="Breakfast">Breakfast</option>
                     <option value="Lunch">Lunch</option>
                     <option value="Dinner">Dinner</option>
@@ -448,7 +448,7 @@ export default function RecipeManagement() {
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Status</label>
                 {drawerMode === 'view' ? <p className="text-white">{formData.status}</p> : (
-                  <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value as 'LIVE' | 'DRAFT'})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none">
+                  <select value={formData.status || 'DRAFT'} onChange={e => setFormData({...formData, status: e.target.value as 'LIVE' | 'DRAFT'})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none">
                     <option value="LIVE">LIVE (Public)</option>
                     <option value="DRAFT">DRAFT (Hidden)</option>
                   </select>
@@ -460,13 +460,13 @@ export default function RecipeManagement() {
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Prep Time</label>
                 {drawerMode === 'view' ? <p className="text-white">{formData.prepTime}</p> : (
-                  <input type="text" value={formData.prepTime} onChange={e => setFormData({...formData, prepTime: e.target.value})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none" placeholder="e.g. 45 mins" />
+                  <input type="text" value={formData.prepTime || ''} onChange={e => setFormData({...formData, prepTime: e.target.value})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none" placeholder="e.g. 45 mins" />
                 )}
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Estimated Cost (₦)</label>
                 {drawerMode === 'view' ? <p className="text-white">₦{formData.estimatedCost?.toLocaleString()}</p> : (
-                  <input type="number" value={formData.estimatedCost} onChange={e => setFormData({...formData, estimatedCost: Number(e.target.value)})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none" placeholder="0" />
+                  <input type="number" value={formData.estimatedCost || 0} onChange={e => setFormData({...formData, estimatedCost: Number(e.target.value)})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none" placeholder="0" />
                 )}
               </div>
             </div>
@@ -478,7 +478,7 @@ export default function RecipeManagement() {
                   {formData.tags?.map((t, i) => <span key={i} className="px-2 py-1 bg-[#1A1A1A] border border-[#2A2A2A] rounded text-xs font-semibold tracking-wider text-gray-300">{t}</span>)}
                 </div>
               ) : (
-                <input type="text" value={formData.tags?.join(', ')} onChange={e => setFormData({...formData, tags: e.target.value.split(',').map(t => t.trim())})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none" placeholder="e.g. VEGAN, SPICY, KETO" />
+                <input type="text" value={formData.tags ? formData.tags.join(', ') : ''} onChange={e => setFormData({...formData, tags: e.target.value.split(',').map(t => t.trim())})} className="w-full p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white focus:border-[#1CD05D] outline-none" placeholder="e.g. VEGAN, SPICY, KETO" />
               )}
             </div>
           </div>
