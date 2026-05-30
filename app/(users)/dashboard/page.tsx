@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, collection, getDocs, query, where, DocumentData } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, DocumentData, updateDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 
 interface UserData {
@@ -10,6 +10,7 @@ interface UserData {
   budgetAmount: number;
   amountSpent: number;
   primaryGoal: string;
+  lastResetMonth?: string;
 }
 
 interface MealPlanItem {
@@ -19,6 +20,9 @@ interface MealPlanItem {
   source: 'Recipe' | 'Cafeteria';
   cost: number;
   isEaten: boolean;
+  planId: string;
+  weekNum: string;
+  dayName: string;
 }
 
 // --- Explicit Types to replace 'any' ---
@@ -27,6 +31,7 @@ interface MealData {
   title?: string;
   source?: 'Recipe' | 'Cafeteria' | string;
   cost?: number | string;
+  isEaten?: boolean;
 }
 
 interface DayPlan {
@@ -65,21 +70,48 @@ export default function UserDashboard() {
 
       try {
         // 1. Fetch User Profile & True Financials
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
+const userDocRef = doc(db, 'users', user.uid);
+const userDocSnap = await getDoc(userDocRef);
 
-        if (!userDocSnap.exists() || !userDocSnap.data().onboardingCompleted) {
-          router.push('/setup');
-          return;
-        }
+if (!userDocSnap.exists() || !userDocSnap.data().onboardingCompleted) {
+  router.push('/setup');
+  return;
+}
 
-        const uData = userDocSnap.data();
-        setUserData({
-          displayName: uData.displayName || 'User',
-          budgetAmount: Number(uData.budgetAmount) || 0,
-          amountSpent: Number(uData.amountSpent) || 0, 
-          primaryGoal: uData.primaryGoal || 'Manage Diet',
-        });
+const uData = userDocSnap.data();
+
+// --- NEW: THE LAZY MONTHLY RESET ---
+// Renamed to currentDate to avoid the block-scoped error
+const currentDate = new Date(); 
+// Creates a clean YYYY-MM format (e.g., "2026-05")
+const currentMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+
+let currentSpent = Number(uData.amountSpent) || 0;
+
+// If the database month doesn't match the real-world month, trigger the reset
+if (uData.lastResetMonth !== currentMonthStr) {
+  try {
+    await updateDoc(userDocRef, {
+      amountSpent: 0,
+      lastResetMonth: currentMonthStr
+    });
+    
+    // Immediately set our local variable to 0 so the UI updates without a refresh
+    currentSpent = 0; 
+  } catch (error) {
+    console.error("Failed to reset monthly budget:", error);
+  }
+}
+// -----------------------------------
+
+// Now populate your React state with the finalized data
+setUserData({
+  displayName: uData.displayName || 'User',
+  budgetAmount: Number(uData.budgetAmount) || 0,
+  amountSpent: currentSpent, 
+  primaryGoal: uData.primaryGoal || 'Manage Diet',
+  lastResetMonth: currentMonthStr
+});
 
         // 2. Fetch User's Pantry Count
         const pantryQuery = query(collection(db, 'pantry'), where('userId', '==', user.uid));
@@ -131,20 +163,26 @@ export default function UserDashboard() {
                               || activePlan.schedule['1']?.[currentDayName];
 
           if (todaysSchedule) {
-            (['Breakfast', 'Lunch', 'Dinner'] as const).forEach(type => {
-              const meal = todaysSchedule[type];
-              if (meal) {
-                fetchedTodaysMeals.push({
-                  id: `${activePlanId}-${type}`,
-                  mealType: type,
-                  title: meal.name || meal.title || 'Unknown Meal',
-                  source: (meal.source as 'Recipe' | 'Cafeteria') || 'Recipe',
-                  cost: Number(meal.cost) || 0,
-                  isEaten: false, 
-                });
-              }
-            });
-          }
+  (['Breakfast', 'Lunch', 'Dinner'] as const).forEach(type => {
+    const meal = todaysSchedule[type];
+    if (meal) {
+      fetchedTodaysMeals.push({
+        id: `${activePlanId}-${type}`,
+        mealType: type,
+        title: meal.name || meal.title || 'Unknown Meal',
+        source: (meal.source as 'Recipe' | 'Cafeteria') || 'Recipe',
+        cost: Number(meal.cost) || 0,
+        
+        // Change this line:
+        isEaten: meal.isEaten || false, 
+        
+        planId: activePlanId,
+        weekNum: weekNum.toString(),
+        dayName: currentDayName
+      });
+    }
+  });
+}
 
           Object.values(activePlan.schedule).forEach((week) => {
             Object.values(week).forEach((day) => {
@@ -181,6 +219,36 @@ export default function UserDashboard() {
   const safeBudget = userData?.budgetAmount || 1; 
   const spentAmount = userData?.amountSpent || 0;
   const budgetPercentage = Math.min((spentAmount / safeBudget) * 100, 100);
+
+const handleMarkAsEaten = async (meal: MealPlanItem) => {
+  // 1. Fixes the 'auth.currentUser' is possibly 'null' error
+  const user = auth.currentUser;
+  if (!user) return; 
+
+  // 2. Optimistic UI Update for a snappy experience
+  setTodaysMeals((prevMeals) => 
+    prevMeals.map((m) => 
+      m.id === meal.id ? { ...m, isEaten: true } : m
+    )
+  );
+
+  try {
+    // 3. Precise, deeply nested Firestore update using the data stored on the meal
+    const planRef = doc(db, 'users', user.uid, 'meal_plans', meal.planId);
+    await updateDoc(planRef, {
+      [`schedule.${meal.weekNum}.${meal.dayName}.${meal.mealType}.isEaten`]: true
+    });
+  } catch (error) {
+    console.error("Failed to mark meal as eaten:", error);
+    
+    // Optional: Revert the UI update if the database fails
+    setTodaysMeals((prevMeals) => 
+      prevMeals.map((m) => 
+        m.id === meal.id ? { ...m, isEaten: false } : m
+      )
+    );
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-900 dark:text-white selection:bg-[#1CD05D] selection:text-white pb-20 lg:pb-8 transition-colors duration-300">
@@ -264,9 +332,12 @@ export default function UserDashboard() {
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">{meal.source} • ₦{meal.cost.toLocaleString()}</p>
                   
                   {!meal.isEaten ? (
-                    <button className="mt-auto w-full py-2.5 text-xs font-bold text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] rounded-lg transition-colors uppercase tracking-widest">
-                      Mark as Eaten
-                    </button>
+                    <button 
+  onClick={() => handleMarkAsEaten(meal)}
+  className="mt-auto w-full py-2.5 text-xs font-bold text-gray-900 bg-[#1CD05D] hover:bg-[#15b04d] rounded-lg transition-colors uppercase tracking-widest"
+>
+  Mark as Eaten
+</button>
                   ) : (
                     <button className="mt-auto w-full py-2.5 text-xs font-bold text-gray-500 border border-gray-200 dark:border-[#2A2A2A] rounded-lg uppercase tracking-widest cursor-default">
                       Completed

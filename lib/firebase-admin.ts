@@ -21,16 +21,12 @@ export const adminAuth = admin.auth();
 /**
  * Function to assign admin privileges
  */
-export const setAdminClaim = async (uid: string) => {
-  try {
-    await admin.auth().setCustomUserClaims(uid, { admin: true });
-    console.log(`Successfully assigned admin claim to user: ${uid}`);
-  } catch (error) {
-    console.error('Error setting custom claims:', error);
-  }
-};
+// export const setAdminClaim = async (uid: string) => {
+//   try {
+//     await admin.auth().setCustomUserClaims(uid, { admin: true });
+//     console.log(`Successfully assigned admin claim to user: ${uid}`);
+//   } catch (error) {
+//     console.error('Error setting custom claims:', error);
+//   }
+// };
 
-// --- ONE-TIME EXECUTION FOR YOUR SPECIFIC UID ---
-// You can remove this block after you run the script once.
-const TARGET_UID = 'viDKGHZXBRSvaSr5aUVMTpQ9Dcv2';
-setAdminClaim(TARGET_UID);

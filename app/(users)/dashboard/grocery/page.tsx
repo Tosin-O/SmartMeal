@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, query, orderBy, getDocs, updateDoc, deleteDoc, doc, writeBatch, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
+import toast, { Toaster } from 'react-hot-toast';
 
 interface GroceryItem {
   name: string;
@@ -245,6 +246,8 @@ export default function GroceryListPage() {
       return;
     }
 
+    const toastId = toast.loading('Syncing groceries to pantry...');
+    
     try {
       const batch = writeBatch(db);
 
@@ -253,8 +256,10 @@ export default function GroceryListPage() {
         batch.set(pantryRef, {
           userId,
           name: item.name,
-          category: 'Uncategorized', 
-          quantity: '1',
+          category: 'Other', 
+          amount: 1,         
+          unit: 'pieces',    
+          quantity: '1 pieces',
           addedAt: new Date()
         });
       });
@@ -265,11 +270,12 @@ export default function GroceryListPage() {
       await batch.commit();
 
       setLists(prev => prev.map(l => l.id === selectedListId ? { ...l, items: unboughtItems } : l));
-      alert(`Successfully moved ${boughtItems.length} items to your Pantry!`);
+      toast.success(`${boughtItems.length} Groceries successfully synced!`, { id: toastId });
+      // alert(`Successfully moved ${boughtItems.length} items to your Pantry!`);
 
     } catch (error) {
       console.error("Error syncing to pantry:", error);
-      alert("Failed to sync items to pantry.");
+      toast.error("Failed to sync items to pantry.", { id: toastId });
     } finally {
       setIsSyncing(false);
     }
@@ -298,6 +304,8 @@ export default function GroceryListPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-900 dark:text-white pb-20 lg:pb-8 relative transition-colors duration-300">
       
+    <Toaster position="top-center" /> 
+
       {/* --- CREATE NEW LIST MODAL --- */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">

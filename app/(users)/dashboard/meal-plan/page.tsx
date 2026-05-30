@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { doc, getDoc, collection, getDocs, addDoc, query, orderBy, limit, serverTimestamp } from 'firebase/firestore'; 
+import { doc, getDoc, collection, getDocs, addDoc, query, orderBy, limit, serverTimestamp, updateDoc, increment } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { distributeMeals, WeekPlan, MissingIngredient } from '@/lib/scheduler';
 
@@ -395,6 +395,14 @@ export default function MealPlanner() {
           status: 'active'
         });
       }
+
+      // --- ADD THIS NEW STEP ---
+      // 3. UPDATE THE USER'S TOTAL SPENT BUDGET
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        amountSpent: increment(totalSpent) 
+      });
+      // -------------------------
 
       showToast('success', `Plan saved! Scheduled to start on ${planStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}.`);
 
