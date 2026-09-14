@@ -113,8 +113,4 @@ This ensures users get **optimal meal recommendations** based on real constraint
 * GitHub: https://github.com/Tosin-O
 * Instagram: @codejourneywithtosin
 
----
 
-## 📀 Preview
-
-*Add screenshots or demo videos here*
